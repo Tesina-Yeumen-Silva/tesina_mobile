@@ -1,3 +1,5 @@
+import { useColorScheme } from "@/components/useColorScheme";
+import Colors from "@/constants/Colors";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import {
   DarkTheme,
@@ -6,13 +8,13 @@ import {
 } from "@react-navigation/native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import "react-native-reanimated";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-
-import { useColorScheme } from "@/components/useColorScheme";
+import { ThemeProvider as StyledThemeProvider } from "styled-components/native";
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -54,15 +56,32 @@ export default function RootLayout() {
 const queryClient = new QueryClient();
 
 function RootLayoutNav() {
+  const router = useRouter();
+
+  useEffect(() => {
+    router.replace("/login");
+  }, []);
+
   const colorScheme = useColorScheme();
+  const currentTheme = colorScheme === "dark" ? Colors.dark : Colors.light;
   return (
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider
-          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-        >
-          <Stack></Stack>
-        </ThemeProvider>
+        <StyledThemeProvider theme={currentTheme}>
+          <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
+          <ThemeProvider
+            value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+          >
+            <Stack>
+              <Stack.Screen
+                name="login/index"
+                options={{
+                  headerShown: false,
+                }}
+              />
+            </Stack>
+          </ThemeProvider>
+        </StyledThemeProvider>
       </QueryClientProvider>
     </SafeAreaProvider>
   );
