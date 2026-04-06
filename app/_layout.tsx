@@ -79,6 +79,12 @@ function RootLayoutNav() {
                   headerShown: false,
                 }}
               />
+              <Stack.Screen
+                name="home/index"
+                options={{
+                  headerShown: false,
+                }}
+              />
             </Stack>
           </ThemeProvider>
         </StyledThemeProvider>
