@@ -59,7 +59,7 @@ function RootLayoutNav() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace("/login");
+    router.replace("/home");
   }, []);
 
   const colorScheme = useColorScheme();
