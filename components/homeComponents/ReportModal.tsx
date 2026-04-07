@@ -2,6 +2,7 @@ import { Dispatch, SetStateAction } from "react";
 import { Modal } from "react-native";
 import styled from "styled-components/native";
 import { Text, View } from "../Themed";
+import UploadImage from "./UploadImage";
 
 interface ReportModalProps {
   isModalVisible: boolean;
@@ -27,6 +28,7 @@ const ReportModal = ({
           <Text style={{ fontSize: 18, fontWeight: "bold", marginBottom: 20 }}>
             Reportar Incidente
           </Text>
+          <UploadImage />
           <CloseButton onPress={() => setIsModalVisible(false)}>
             <Text style={{ color: "white" }}>Cerrar</Text>
           </CloseButton>
