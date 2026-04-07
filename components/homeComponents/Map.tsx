@@ -1,10 +1,16 @@
-import { Ionicons } from "@expo/vector-icons";
-import MapView, { UrlTile } from "react-native-maps";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { useState } from "react";
+import MapView from "react-native-maps";
 import styled from "styled-components/native";
+import ReportModal from "./ReportModal";
 
 const MapHome = () => {
+  const [isModalVisible, setIsModalVisible] = useState(false);
   return (
     <Container>
+      {isModalVisible && (
+        <ReportModal isModalVisible setIsModalVisible={setIsModalVisible} />
+      )}
       <Map
         userInterfaceStyle="light"
         showsUserLocation={true}
@@ -14,18 +20,13 @@ const MapHome = () => {
           latitudeDelta: 0.05,
           longitudeDelta: 0.05,
         }}
-      >
-        <UrlTile
-          urlTemplate="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-          maximumZ={19}
-          flipY={false}
-          zIndex={1}
-          tileSize={256}
-        />
-      </Map>
+      ></Map>
       <CenterLocation>
         <Ionicons name="locate" size={32} />
       </CenterLocation>
+      <FabButton onPress={() => setIsModalVisible(true)}>
+        <MaterialIcons name="report-problem" size={32} />
+      </FabButton>
     </Container>
   );
 };
@@ -46,6 +47,18 @@ const CenterLocation = styled.TouchableOpacity`
   bottom: 30px;
   right: 20px;
   background-color: #007aff;
+  width: 60px;
+  height: 60px;
+  border-radius: 30px;
+  justify-content: center;
+  align-items: center;
+`;
+
+const FabButton = styled.TouchableOpacity`
+  position: absolute;
+  bottom: 30px;
+  left: 20px;
+  background-color: red;
   width: 60px;
   height: 60px;
   border-radius: 30px;
