@@ -2,7 +2,9 @@ import { Dispatch, SetStateAction } from "react";
 import { Modal } from "react-native";
 import styled from "styled-components/native";
 import { Text, View } from "../Themed";
-import UploadImage from "./UploadImage";
+import ImageSelector from "./ImageSelector";
+
+import { useState } from "react";
 
 interface ReportModalProps {
   isModalVisible: boolean;
@@ -13,6 +15,7 @@ const ReportModal = ({
   isModalVisible,
   setIsModalVisible,
 }: ReportModalProps) => {
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   return (
     <Modal
       animationType="slide"
@@ -28,7 +31,7 @@ const ReportModal = ({
           <Text style={{ fontSize: 18, fontWeight: "bold", marginBottom: 20 }}>
             Reportar Incidente
           </Text>
-          <UploadImage />
+          <ImageSelector image={selectedImage} setImage={setSelectedImage} />
           <CloseButton onPress={() => setIsModalVisible(false)}>
             <Text style={{ color: "white" }}>Cerrar</Text>
           </CloseButton>
