@@ -32,6 +32,12 @@
     "plugins": [
       "expo-router",
       [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Permite a Mendoza Reporta a acceder a tu ubicación."
+        }
+      ],
+      [
         "expo-image-picker",
         {
           "photosPermission": "Mendoza Reporta requiere acceso a tu galería para que puedas adjuntar evidencia fotográfica de los incidentes reportados.",
