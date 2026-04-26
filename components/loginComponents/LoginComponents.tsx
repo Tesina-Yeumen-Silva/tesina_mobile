@@ -1,27 +1,53 @@
 import { Text, TextInput, View } from "@/components/Themed";
+import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  TouchableWithoutFeedback,
+} from "react-native";
 import styled from "styled-components/native";
 
 const LoginComponent = () => {
   return (
-    <Container>
-      <LoginCard>
-        <Logo
-          source={{
-            uri: "https://i.pinimg.com/736x/90/58/3d/90583d6a4aaafaa6567539ec834f3696.jpg",
-          }}
-        />
-        <InputEmail placeholder="Ingrese su email" />
-        <InputPassword
-          placeholder="Ingrese su contraseña"
-          secureTextEntry={true}
-        />
-        <LoginButton>
-          <LoginButtonText>Login</LoginButtonText>
-        </LoginButton>
-      </LoginCard>
-    </Container>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
+    >
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+        bounces={false}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+          <Container>
+            <LoginCard>
+              <Logo
+                source={{
+                  uri: "https://i.pinimg.com/736x/90/58/3d/90583d6a4aaafaa6567539ec834f3696.jpg",
+                }}
+              />
+
+              <InputEmail placeholder="Ingrese su email" />
+
+              <InputPassword
+                placeholder="Ingrese su contraseña"
+                secureTextEntry={true}
+              />
+
+              <LoginButton>
+                <LoginButtonText>Login</LoginButtonText>
+              </LoginButton>
+
+              <ForgotText>¿Olvidaste tu contraseña?</ForgotText>
+            </LoginCard>
+          </Container>
+        </TouchableWithoutFeedback>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
+
 export default LoginComponent;
 
 const Container = styled(View)`
@@ -30,6 +56,12 @@ const Container = styled(View)`
   justify-content: center;
   align-items: center;
   padding: 20px;
+`;
+
+const ForgotText = styled(Text)`
+  margin-top: 20px;
+  color: ${(props) => props.theme.text || "gray"};
+  font-size: 14px;
 `;
 
 const LoginCard = styled(View)`
@@ -79,5 +111,3 @@ const LoginButtonText = styled(Text)`
   text-transform: uppercase;
   letter-spacing: 1px;
 `;
-
-const forgotPasswordText = styled(Text)``;
