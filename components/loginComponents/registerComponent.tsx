@@ -1,7 +1,7 @@
-import { Text, TextInput, View } from "@/components/Themed";
-import { useAuthStore } from "@/store/authStore";
-import { useRouter } from "expo-router";
-import { useState } from "react";
+import React, { useState } from "react";
+import { View, TextInput, Text } from "@/components/Themed";
+import styled, { useTheme } from "styled-components/native";
+import { BackButton } from "../iu/BackButton";
 import {
   ActivityIndicator,
   Alert,
@@ -11,43 +11,48 @@ import {
   ScrollView,
   TouchableWithoutFeedback,
 } from "react-native";
-import styled, { useTheme } from "styled-components/native";
-import { BackButton } from "../iu/BackButton";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { useAuthStore } from "@/store/authStore";
 
-const LoginComponent = () => {
+const RegisterComponent = () => {
+  const [name, setName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  const [confirmPassword, setConfirmPassword] = useState<string>("");
   const [isPasswordSecure, setIsPasswordSecure] = useState<boolean>(true);
+  const theme = useTheme();
   const router = useRouter();
 
-  const login = useAuthStore((state) => state.login);
-  const isLoading = useAuthStore((state) => state.isLoading);
-  const theme = useTheme();
+  const { register, isLoading } = useAuthStore();
 
-  const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert("Error", "Por favor Ingresa tu email y contraseña");
+  const handleRegister = async () => {
+    if (!name || !email || !password || !confirmPassword) {
+      Alert.alert("Error", "Todos los campos son obligatorios");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert("Error", "Las contraseñas no coinciden");
       return;
     }
 
     try {
-      await login({ email, password });
-      setEmail("");
-      setPassword("");
+      await register({ email, name, password });
+      Alert.alert("Correcto", "Usted fue registrado con éxito");
       router.replace("/");
-    } catch (error) {
-      Alert.alert("Error de autenticación", "Email o contraseña incorrectos");
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message || "Hubo un problema al crear la cuenta";
+      Alert.alert("Error en el registro", errorMessage);
     }
   };
-
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={{ flex: 1 }}
     >
       <BackButton />
-
       <ScrollView
         contentContainerStyle={{ flexGrow: 1 }}
         keyboardShouldPersistTaps="handled"
@@ -55,22 +60,21 @@ const LoginComponent = () => {
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
           <Container>
-            <LoginCard>
-              <Logo
-                source={{
-                  uri: "https://i.pinimg.com/736x/90/58/3d/90583d6a4aaafaa6567539ec834f3696.jpg",
-                }}
-              />
-
+            <RegisterCard>
+              <RegisterText>Registrarse en Mendoza Reporta</RegisterText>
+              <Separator />
               <InputEmail
-                value={email}
-                onChangeText={setEmail}
+                placeholder="Email"
                 autoCapitalize="none"
                 keyboardType="email-address"
-                placeholder="Ingrese su email"
-                editable={!isLoading}
+                value={email}
+                onChangeText={setEmail}
               />
-
+              <InputName
+                placeholder="Nombre y apellido"
+                value={name}
+                onChangeText={setName}
+              />
               <PasswordWrapper>
                 <InputPassword
                   placeholder="Contraseña"
@@ -94,29 +98,41 @@ const LoginComponent = () => {
                 </TouchEye>
               </PasswordWrapper>
 
-              <LoginButton
-                onPress={handleLogin}
+              <PasswordWrapper>
+                <InputPassword
+                  placeholder="Confirmar contraseña"
+                  autoCapitalize="none"
+                  secureTextEntry={isPasswordSecure}
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  style={{
+                    paddingRight: 50,
+                  }}
+                />
+
+                <TouchEye
+                  onPress={() => setIsPasswordSecure(!isPasswordSecure)}
+                >
+                  <MaterialCommunityIcons
+                    name={isPasswordSecure ? "eye-off" : "eye"}
+                    size={24}
+                    color={theme.text}
+                  />
+                </TouchEye>
+              </PasswordWrapper>
+
+              <RegisterButton
+                onPress={handleRegister}
                 disabled={isLoading}
                 style={{ opacity: isLoading ? 0.7 : 1 }}
               >
                 {isLoading ? (
                   <ActivityIndicator color="#ffffff" />
                 ) : (
-                  <LoginButtonText>Login</LoginButtonText>
+                  <RegisterButtonText>Registrarse</RegisterButtonText>
                 )}
-              </LoginButton>
-
-              <LinkWrapper onPress={() => router.push("/register")}>
-                <TextNormal>¿No tienes cuenta?</TextNormal>
-                <TextBold>Regístrate aquí</TextBold>
-              </LinkWrapper>
-
-              <LinkWrapper onPress={() => router.push("/restorePassword")}>
-              <TextBold>¿Olvidaste tu contraseña?</TextBold>
-              
-              </LinkWrapper>
-              
-            </LoginCard>
+              </RegisterButton>
+            </RegisterCard>
           </Container>
         </TouchableWithoutFeedback>
       </ScrollView>
@@ -124,7 +140,7 @@ const LoginComponent = () => {
   );
 };
 
-export default LoginComponent;
+export default RegisterComponent;
 
 const Container = styled(View)`
   flex: 1;
@@ -134,7 +150,7 @@ const Container = styled(View)`
   padding: 20px;
 `;
 
-const LoginCard = styled(View)`
+const RegisterCard = styled(View)`
   background-color: ${(props: any) => props.theme.surface};
   width: 80%;
   max-width: 400px;
@@ -143,10 +159,18 @@ const LoginCard = styled(View)`
   align-items: center;
 `;
 
-const Logo = styled.Image`
-  width: 45%;
-  aspect-ratio: 1;
-  margin-bottom: 10%;
+const RegisterText = styled(Text)`
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+`;
+
+const Separator = styled(View)`
+  height: 1px;
+  width: 100%;
+  background-color: ${(props: any) => props.theme.text};
+  margin-bottom: 15px;
+  margin-top: 15px;
 `;
 
 const StyledInput = styled(TextInput)`
@@ -163,6 +187,7 @@ const StyledInput = styled(TextInput)`
 `;
 
 const InputEmail = styled(StyledInput)``;
+const InputName = styled(StyledInput)``;
 const InputPassword = styled(StyledInput)``;
 
 export const PasswordWrapper = styled.View`
@@ -177,7 +202,7 @@ export const TouchEye = styled.TouchableOpacity`
   z-index: 2;
 `;
 
-const LoginButton = styled.TouchableOpacity`
+const RegisterButton = styled.TouchableOpacity`
   width: 100%;
   height: 55px;
   background-color: ${(props) => props.theme.tint};
@@ -187,28 +212,9 @@ const LoginButton = styled.TouchableOpacity`
   margin-top: 10px;
 `;
 
-const LoginButtonText = styled(Text)`
+const RegisterButtonText = styled(Text)`
   font-size: 18px;
   font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 1px;
-`;
-
-export const LinkWrapper = styled.TouchableOpacity`
-  margin-top: 25px;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-`;
-
-export const TextNormal = styled.Text`
-  color: ${({ theme }) => theme.text || "#666"};
-  font-size: 14px;
-`;
-
-export const TextBold = styled.Text`
-  color: ${({ theme }) => theme.tint || "#007BFF"};
-  font-size: 14px;
-  font-weight: bold;
-  margin-left: 5px;
 `;
