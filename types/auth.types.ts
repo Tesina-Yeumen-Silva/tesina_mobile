@@ -4,7 +4,7 @@ export interface User {
   role: string;
 }
 
-export interface LoginResponse {
+export interface AuthResponse {
   token: string;
   refreshToken: string;
   user: User;
@@ -14,3 +14,10 @@ export interface LoginRequest {
   email: string;
   password: string;
 }
+
+export interface RegisterRequest {
+  email: string;
+  name: string;
+  password: string;
+}
+
