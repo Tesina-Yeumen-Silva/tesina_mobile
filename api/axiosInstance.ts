@@ -2,7 +2,6 @@ import axios from "axios";
 import {
   getAccessToken,
   getRefreshToken,
-  saveRefreshToken,
   saveToken,
 } from "@/utils/secureStorage";
 
@@ -36,32 +35,33 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response.status === 401 && !originalRequest._retry) {
+    if (error.response && error.response.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-    }
 
-    try {
-      const refreshToken = getRefreshToken();
+      try {
+        const refreshToken = await getRefreshToken(); 
 
-      if (!refreshToken) {
-        throw new Error("No hay refresh token");
+        if (!refreshToken) {
+          throw new Error("No hay refresh token");
+        }
+
+        const refreshResponse = await axios.post(`${API_URL}/auth/refresh`, {
+          refreshToken,
+        });
+
+        const { accessToken } = refreshResponse.data;
+
+        await saveToken(accessToken);
+
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+
+        return api(originalRequest);
+      } catch (refreshError) {
+        const { useAuthStore } = require('../store/authStore');
+        useAuthStore.getState().logout();
+        return Promise.reject(refreshError);
       }
-
-      const refreshResponse = await axios.post(`${API_URL}/auth/refresh`, {
-        refreshToken,
-      });
-
-      const { accessToken } = refreshResponse.data;
-
-      await saveToken(accessToken);
-
-      originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-
-      return api(originalRequest);
-    } catch (refreshError) {
-      const { useAuthStore } = require('../store/authStore');
-      useAuthStore.getState().logout();
-      return Promise.reject(refreshError);
     }
+    return Promise.reject(error);
   },
 );
