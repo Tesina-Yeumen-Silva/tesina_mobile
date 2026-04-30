@@ -1,39 +1,68 @@
 import { Dropdown } from "react-native-element-dropdown";
 import styled from "styled-components/native";
 import { View } from "../Themed";
+import { useEffect, useState } from "react";
+import { getCategories } from "@/api/category.api";
+import { ActivityIndicator } from "react-native";
 
 interface DropdownComponentProps {
   selectedCategory: string | null;
   setselectedCategory: (category: string | null) => void;
 }
 
-const data = [
-  { label: "Bache / Pozo", value: "1" },
-  { label: "Acequia Obstruida", value: "2" },
-  { label: "Luminaria Apagada", value: "3" },
-  { label: "Semáforo Roto", value: "4" },
-  { label: "Residuos / Escombros", value: "5" },
-];
+interface DropdownItem {
+  label: string;
+  value: string;
+}
 
 const DropdownComponent = ({
   selectedCategory,
   setselectedCategory,
 }: DropdownComponentProps) => {
+  const [data, setData] = useState<DropdownItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setIsLoading(true);
+        const categoriesFromDB = await getCategories();
+
+        const formattedData = categoriesFromDB.map((cat: any) => ({
+          label: cat.name,
+          value: String(cat.id),
+        }));
+
+        setData(formattedData);
+      } catch (error) {
+        console.log("Error cargando categorías:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
   return (
     <Contianer>
-      <StyledDropdown
-        data={data}
-        search
-        maxHeight={300}
-        labelField="label"
-        valueField="value"
-        placeholder="Buscar..."
-        searchPlaceholder="buscar..."
-        value={selectedCategory}
-        onChange={(item) => {
-          setselectedCategory(item.value);
-        }}
-      />
+      {isLoading ? (
+        <ActivityIndicator size="small" color="#0000ff" />
+      ) : (
+        <StyledDropdown
+          data={data}
+          search
+          maxHeight={300}
+          labelField="label"
+          valueField="value"
+          placeholder="Seleccionar categoría..."
+          searchPlaceholder="Buscar..."
+          value={selectedCategory}
+          onChange={(item: DropdownItem) => {
+            setselectedCategory(item.value);
+          }}
+          disable={isLoading}
+        />
+      )}
     </Contianer>
   );
 };
