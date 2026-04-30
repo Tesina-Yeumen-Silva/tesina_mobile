@@ -1,6 +1,6 @@
 import { api } from "./axiosInstance";
 import { Region } from "react-native-maps";
-import { ReportDetails, ReportMaker } from "@/types/reports.types";
+import { CreateReport, ReportDetails, ReportMaker } from "@/types/reports.types";
 
 export const fetchMapMakers = async (
   region: Region,
@@ -25,8 +25,38 @@ export const fetchReportById = async (
   return response.data.data;
 };
 
-export const toggleAdhesion = async(reportId:number) :Promise<{ adhered: boolean }> => {
-    const response = await api.post(`/reports/${reportId}/adhesions/toggle`)
+export const createReport = async (report: CreateReport) => {
+  const formData = new FormData();
 
-    return response.data.data;
-}
+  formData.append('address', report.address);
+  formData.append('latitude', String(report.latitude));
+  formData.append('longitude', String(report.longitude));
+  formData.append('description', report.description);
+  formData.append('isAnonymous', String(report.isAnonymous));
+  formData.append('categoryId', String(report.categoryId));
+
+  const filename = report.image.split('/').pop() || 'photo.jpg';
+  const match = /\.(\w+)$/.exec(filename);
+  const type = match ? `image/${match[1]}` : `image/jpeg`;
+
+  formData.append('image', {
+    uri: report.image,
+    name: filename,
+    type: type,
+  } as any); 
+
+  const response = await api.post('/reports', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+
+  return response.data;
+};
+export const toggleAdhesion = async (
+  reportId: number,
+): Promise<{ adhered: boolean }> => {
+  const response = await api.post(`/reports/${reportId}/adhesions/toggle`);
+
+  return response.data.data;
+};
