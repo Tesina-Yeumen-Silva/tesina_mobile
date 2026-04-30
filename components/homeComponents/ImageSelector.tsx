@@ -43,7 +43,7 @@ const ImageSelector = ({ image, setImage }: ImageSelectorProps) => {
     <MainContainer>
       {image ? (
         <PreviewWrapper>
-          <StyledImage source={{ uri: image }} />
+          <StyledImage source={{ uri: image }} resizeMode="cover" />
           <DeleteBadge onPress={() => setImage(null)}>
             <MaterialIcons name="close" size={20} color="white" />
           </DeleteBadge>
@@ -98,7 +98,7 @@ const ButtonLabel = styled(Text)`
 
 const PreviewWrapper = styled(View)`
   width: 100%;
-  height: 220px;
+  aspect-ratio: 4 / 3;
   border-radius: 15px;
   position: relative;
   overflow: visible;
