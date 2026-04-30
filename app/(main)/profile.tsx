@@ -1,4 +1,4 @@
-import { View, Text } from 'react-native';
+import UserReportsList from '@/components/homeComponents/UserReportsList';
 export default function ProfileScreen() {
-  return <View><Text>Pantalla de Perfil</Text></View>;
+  return <UserReportsList/>
 }
