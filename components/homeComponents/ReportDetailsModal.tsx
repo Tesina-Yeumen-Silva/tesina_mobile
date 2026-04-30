@@ -13,6 +13,7 @@ import { Image } from "expo-image";
 import { ScrollView } from "react-native-gesture-handler";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { toggleAdhesion } from "@/api/reports.api";
+import { formatDate } from "@/utils/formatDate";
 
 interface Props {
   reportId: number;
@@ -41,14 +42,7 @@ const ReportDetailModal = ({ reportId, onClose }: Props) => {
     loadDetails();
   }, [reportId]);
 
-  const formatDate = (dateString: string) => {
-    const options: Intl.DateTimeFormatOptions = {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    };
-    return new Date(dateString).toLocaleDateString("es-AR", options);
-  };
+  
 
   const toggleAdhesionHandler = async () => {
     try {
