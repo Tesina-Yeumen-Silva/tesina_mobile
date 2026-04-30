@@ -40,6 +40,17 @@ export default function MainLayout() {
       />
 
       <Drawer.Screen
+        name="report"
+        options={{
+          title: "Reportar",
+          drawerLabel: "Reportar",
+          drawerIcon: ({ color }) => <MaterialIcons name="report" size={22} color={color} />,
+          
+          drawerItemStyle: { display: isLoggedIn ? 'flex' : 'none' } 
+        }}
+      />
+
+      <Drawer.Screen
         name="profile"
         options={{
           title: "Mi Cuenta",
@@ -49,6 +60,8 @@ export default function MainLayout() {
           drawerItemStyle: { display: isLoggedIn ? 'flex' : 'none' } 
         }}
       />
+
+      
     </Drawer>
   );
 }
