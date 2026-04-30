@@ -7,6 +7,9 @@ import * as Location from "expo-location";
 import { ReportMaker } from "@/types/reports.types";
 import { fetchMapMakers } from "@/api/reports.api";
 import ReportDetailModal from "./ReportDetailsModal";
+import { useRouter } from "expo-router";
+import { Alert } from "react-native";
+import { useAuthStore } from "@/store/authStore";
 
 const MapHome = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -17,6 +20,8 @@ const MapHome = () => {
   );
   const [markers, setMarkers] = useState<ReportMaker[]>([]);
   const mapRef = useRef<MapView | null>(null);
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  const router = useRouter();
 
   useEffect(() => {
     (async () => {
@@ -26,6 +31,24 @@ const MapHome = () => {
       setLocation(loc);
     })();
   }, []);
+
+  const handleOpenReportModal = () => {
+    if (isLoggedIn) {
+      setIsModalVisible(true);
+    } else {
+      Alert.alert(
+        "Identificación requerida",
+        "Para reportar incidentes en la vía pública necesitas tener una cuenta activa. ¿Quieres iniciar sesión ahora?",
+        [
+          { text: "Después", style: "cancel" },
+          { 
+            text: "Ir al Login", 
+            onPress: () => router.push("/login")
+          }
+        ]
+      );
+    }
+  };
 
   const centerToUser = async () => {
     let loc = await Location.getLastKnownPositionAsync();
@@ -91,7 +114,7 @@ const MapHome = () => {
       <CenterLocation onPress={centerToUser}>
         <Ionicons name="locate" size={32} />
       </CenterLocation>
-      <FabButton onPress={() => setIsModalVisible(true)}>
+      <FabButton onPress={handleOpenReportModal}>
         <MaterialIcons name="report-problem" size={32} />
       </FabButton>
     </Container>
