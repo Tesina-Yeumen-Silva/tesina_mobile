@@ -271,7 +271,7 @@ const ShowImageText = styled(Text)`
 
 const ReportImage = styled(Image)`
   width: 100%;
-  height: 400;
+  height: 400px;
   border-radius: 15px;
   margin-bottom: 15px;
   background-color: ${(props) => props.theme.background};
