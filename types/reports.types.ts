@@ -21,3 +21,13 @@ export interface ReportDetails {
   reporterName: string;
   adhesionsCount: number;
 }
+
+export interface CreateReport {
+  address:string
+  latitude:number
+  longitude:number
+  description:string
+  isAnonymous:boolean;
+  categoryId: number;
+  image:string;
+}
