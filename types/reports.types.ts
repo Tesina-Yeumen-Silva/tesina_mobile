@@ -23,11 +23,32 @@ export interface ReportDetails {
 }
 
 export interface CreateReport {
-  address:string
-  latitude:number
-  longitude:number
-  description:string
-  isAnonymous:boolean;
+  address: string;
+  latitude: number;
+  longitude: number;
+  description: string;
+  isAnonymous: boolean;
   categoryId: number;
-  image:string;
+  image: string;
+}
+
+export interface UserReports {
+  id: number;
+  address: string;
+  createdAt: string;
+  categoryName: string;
+  stateName: string;
+  stateColor: string;
+}
+
+export interface PaginationMeta {
+  total: number;
+  page: number;
+  limit: number;
+  hasMore: boolean;
+}
+
+export interface PaginatedReportsResponse {
+  data: UserReports[];
+  meta: PaginationMeta;
 }

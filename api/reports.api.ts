@@ -1,6 +1,12 @@
 import { api } from "./axiosInstance";
 import { Region } from "react-native-maps";
-import { CreateReport, ReportDetails, ReportMaker } from "@/types/reports.types";
+import {
+  CreateReport,
+  PaginatedReportsResponse,
+  ReportDetails,
+  ReportMaker,
+  UserReports,
+} from "@/types/reports.types";
 
 export const fetchMapMakers = async (
   region: Region,
@@ -28,26 +34,26 @@ export const fetchReportById = async (
 export const createReport = async (report: CreateReport) => {
   const formData = new FormData();
 
-  formData.append('address', report.address);
-  formData.append('latitude', String(report.latitude));
-  formData.append('longitude', String(report.longitude));
-  formData.append('description', report.description);
-  formData.append('isAnonymous', String(report.isAnonymous));
-  formData.append('categoryId', String(report.categoryId));
+  formData.append("address", report.address);
+  formData.append("latitude", String(report.latitude));
+  formData.append("longitude", String(report.longitude));
+  formData.append("description", report.description);
+  formData.append("isAnonymous", String(report.isAnonymous));
+  formData.append("categoryId", String(report.categoryId));
 
-  const filename = report.image.split('/').pop() || 'photo.jpg';
+  const filename = report.image.split("/").pop() || "photo.jpg";
   const match = /\.(\w+)$/.exec(filename);
   const type = match ? `image/${match[1]}` : `image/jpeg`;
 
-  formData.append('image', {
+  formData.append("image", {
     uri: report.image,
     name: filename,
     type: type,
-  } as any); 
+  } as any);
 
-  const response = await api.post('/reports', formData, {
+  const response = await api.post("/reports", formData, {
     headers: {
-      'Content-Type': 'multipart/form-data',
+      "Content-Type": "multipart/form-data",
     },
   });
 
@@ -59,4 +65,9 @@ export const toggleAdhesion = async (
   const response = await api.post(`/reports/${reportId}/adhesions/toggle`);
 
   return response.data.data;
+};
+
+export const getReportsByUserId = async (page: number = 1): Promise<PaginatedReportsResponse> => {
+  const response = await api.get(`/reports/user-reports?page=${page}&limit=10`);
+  return response.data; 
 };
