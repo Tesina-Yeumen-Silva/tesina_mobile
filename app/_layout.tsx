@@ -16,6 +16,7 @@ import { ThemeProvider as StyledThemeProvider } from "styled-components/native";
 import { Slot } from "expo-router";
 import { useAuthStore } from "@/store/authStore";
 import { GestureHandlerRootView } from 'react-native-gesture-handler'; // 🚀 Agrega esto
+import { useOfflineSync } from "@/hooks/useOfflineSync";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
+  useOfflineSync();
   const colorScheme = useColorScheme();
   const currentTheme = colorScheme === "dark" ? Colors.dark : Colors.light;
 
