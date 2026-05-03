@@ -4,6 +4,7 @@ import { View } from "../Themed";
 import { useEffect, useState } from "react";
 import { getCategories } from "@/api/category.api";
 import { ActivityIndicator } from "react-native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface DropdownComponentProps {
   selectedCategory: string | null;
@@ -23,26 +24,34 @@ const DropdownComponent = ({
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        setIsLoading(true);
-        const categoriesFromDB = await getCategories();
+  const fetchCategories = async () => {
+    try {
+      setIsLoading(true);
 
-        const formattedData = categoriesFromDB.map((cat: any) => ({
-          label: cat.name,
-          value: String(cat.id),
-        }));
-
-        setData(formattedData);
-      } catch (error) {
-        console.log("Error cargando categorías:", error);
-      } finally {
+      const cachedCategories = await AsyncStorage.getItem('@report_categories');
+      if (cachedCategories) {
+        setData(JSON.parse(cachedCategories));
         setIsLoading(false);
       }
-    };
 
-    fetchCategories();
-  }, []);
+      const categoriesFromDB = await getCategories();
+      const formattedData = categoriesFromDB.map((cat: any) => ({
+        label: cat.name,
+        value: String(cat.id),
+      }));
+
+      setData(formattedData);
+      await AsyncStorage.setItem('@report_categories', JSON.stringify(formattedData));
+
+    } catch (error) {
+      console.log("Aviso: No se pudieron traer categorías nuevas, usando la caché.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  fetchCategories();
+}, []);
   return (
     <Contianer>
       {isLoading ? (
