@@ -30,22 +30,35 @@ const LocationSelector = ({
         );
         return;
       }
-      let location = await Location.getCurrentPositionAsync();
-      let reverse = await Location.reverseGeocodeAsync({
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
+      let location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
       });
 
-      if (reverse.length > 0) {
-        const addr = reverse[0];
-        setLocationName(`${addr.street} ${addr.name}, ${addr.subregion}`);
-        setCoords({
-          lat: location.coords.latitude,
-          lng: location.coords.longitude,
+      setCoords({
+        lat: location.coords.latitude,
+        lng: location.coords.longitude,
+      });
+
+      try {
+        let reverse = await Location.reverseGeocodeAsync({
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
         });
+
+        if (reverse.length > 0) {
+          const addr = reverse[0];
+          setLocationName(
+            `${addr.street || ""} ${addr.name || ""}, ${addr.subregion || ""}`.trim(),
+          );
+        } else {
+          setLocationName("Ubicación de GPS fijada");
+        }
+      } catch (geocodeError) {
+        console.log("Modo Offline: No se pudo traducir la dirección a texto.");
+        setLocationName("Ubicación guardada (Sin conexión)");
       }
     } catch (error) {
-      Alert.alert("Error", "No se pudo obtener la ubicación.");
+      Alert.alert("Error", "No se pudo conectar con el satélite GPS.");
     } finally {
       setLoading(false);
     }

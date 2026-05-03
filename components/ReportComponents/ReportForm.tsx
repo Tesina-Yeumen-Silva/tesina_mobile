@@ -17,6 +17,10 @@ import DropdownComponent from "../homeComponents/DropDownComponent";
 import MapPickerModal from "../homeComponents/MapPickerModal";
 import ImageSelector from "../homeComponents/ImageSelector";
 import LocationSelector from "../homeComponents/LocationSelector";
+import * as Network from "expo-network";
+import { File } from "expo-file-system";
+import { documentDirectory } from "expo-file-system/legacy";
+import { saveOfflineReport } from "@/utils/offlineStorage";
 
 interface ReportFormProps {
   onSuccess?: () => void;
@@ -93,27 +97,62 @@ export const ReportForm = ({
     try {
       setIsLoading(true);
 
-      const payload: CreateReport = {
-        address: selectedLocation,
-        latitude: selectedCoords.lat,
-        longitude: selectedCoords.lng,
-        description: description,
-        isAnonymous: isAnonymous,
-        categoryId: Number(selectedCategory),
-        image: selectedImage,
-      };
+      const networkState = await Network.getNetworkStateAsync();
+      if (networkState.isConnected && networkState.isInternetReachable) {
+        const payload: CreateReport = {
+          address: selectedLocation,
+          latitude: selectedCoords.lat,
+          longitude: selectedCoords.lng,
+          description: description,
+          isAnonymous: isAnonymous,
+          categoryId: Number(selectedCategory),
+          image: selectedImage,
+        };
 
-      await createReport(payload);
+        await createReport(payload);
 
-      Alert.alert("¡Gracias!", "Tu reporte ha sido enviado exitosamente.");
+        Alert.alert("¡Gracias!", "Tu reporte ha sido enviado exitosamente.");
 
-      setSelectedImage(null);
-      setSelectedLocation(null);
-      setSelectedCoords(null);
-      setselectedCategory(null);
-      setDescription("");
+        setSelectedImage(null);
+        setSelectedLocation(null);
+        setSelectedCoords(null);
+        setselectedCategory(null);
+        setDescription("");
 
-      if (onSuccess) onSuccess();
+        if (onSuccess) onSuccess();
+      } else {
+        const filename = selectedImage.split("/").pop();
+        const permanentImageUri = `${documentDirectory}offline_${Date.now()}_${filename}`;
+
+        const originalFile = new File(selectedImage);
+        const destinationFile = new File(permanentImageUri);
+
+        await originalFile.copy(destinationFile);
+
+        const reportData = {
+          address: selectedLocation,
+          latitude: selectedCoords.lat,
+          longitude: selectedCoords.lng,
+          description: description,
+          isAnonymous: isAnonymous,
+          categoryId: Number(selectedCategory),
+        };
+
+        saveOfflineReport(reportData, permanentImageUri);
+
+        Alert.alert(
+          "Reporte Guardado 💾",
+          "No tienes conexión a internet. Tu reporte ha sido guardado de forma segura y se enviará automáticamente cuando recuperes la señal.",
+        );
+
+        setSelectedImage(null);
+        setSelectedLocation(null);
+        setSelectedCoords(null);
+        setselectedCategory(null);
+        setDescription("");
+
+        if (onSuccess) onSuccess();
+      }
     } catch (error: any) {
       console.log("Error enviando reporte:", error);
       Alert.alert(
