@@ -102,6 +102,7 @@ const ReportDetailModal = ({ reportId, onClose }: Props) => {
                       source={reportData.imageUrl}
                       contentFit="cover"
                       cachePolicy="disk"
+                      recyclingKey={reportData.imageUrl}
                       transition={300}
                     />
                   ) : (

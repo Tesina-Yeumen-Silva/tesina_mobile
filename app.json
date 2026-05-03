@@ -34,13 +34,13 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "Permite a Mendoza Reporta a acceder a tu ubicación."
+          "locationAlwaysAndWhenInUsePermission": "Mendoza Reporta necesita tu ubicación para detectar exactamente dónde se encuentra el incidente y que los equipos de la municipalidad puedan encontrarlo rápido."
         }
       ],
       [
         "expo-image-picker",
         {
-          "photosPermission": "Mendoza Reporta requiere acceso a tu galería para que puedas adjuntar evidencia fotográfica de los incidentes reportados.",
+          "photosPermission": "Mendoza Reporta requiere acceso a tu galería para que puedas elegir y adjuntar evidencia fotográfica de los problemas que ya documentaste.",
           "colors": {
             "cropToolbarColor": "#000000"
           },
@@ -54,13 +54,14 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow Mendoza Reporta to access your camera",
-          "microphonePermission": "Allow Mendoza Reporta to access your microphone",
-          "recordAudioAndroid": true,
-          "barcodeScannerEnabled": true
+          "cameraPermission": "Mendoza Reporta necesita usar la cámara para que puedas tomar fotos del incidente en el momento y enviarlas como evidencia.",
+          "microphonePermission": "Mendoza Reporta necesita el micrófono para grabar el audio si decides adjuntar un video del incidente.",
+          "recordAudioAndroid": false,
+          "barcodeScannerEnabled": false
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-sqlite"
     ],
     "experiments": {
       "typedRoutes": true
