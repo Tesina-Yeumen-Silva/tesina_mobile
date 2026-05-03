@@ -19,7 +19,6 @@ export const saveOfflineReport = (data: any, imageUri: string | null) => {
     "INSERT INTO pending_reports (data_json, image_uri, created_at) VALUES (?, ?, ?)",
     [dataJson, imageUri, createdAt],
   );
-  console.log("💾 Reporte guardado en SQLite");
 };
 
 export const getPendingReports = () => {
