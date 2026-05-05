@@ -1,5 +1,5 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import MapView, { Region, Marker } from "react-native-maps";
 import styled from "styled-components/native";
 import ReportModal from "./ReportModal";
@@ -8,13 +8,14 @@ import { ReportMaker } from "@/types/reports.types";
 import { fetchMapMakers } from "@/api/reports.api";
 import ReportDetailModal from "./ReportDetailsModal";
 import { useRouter } from "expo-router";
-import { Alert } from "react-native";
+import { ActivityIndicator, Alert } from "react-native";
 import { useAuthStore } from "@/store/authStore";
 
 const MapHome = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [isReportDetailVisible, setIsReportDetailVisible] = useState<boolean>(false);
-  const [selectedReportId, setSelectedReportId] = useState<number | null>(null)
+  const [isReportDetailVisible, setIsReportDetailVisible] =
+    useState<boolean>(false);
+  const [selectedReportId, setSelectedReportId] = useState<number | null>(null);
   const [location, setLocation] = useState<Location.LocationObject | null>(
     null,
   );
@@ -22,6 +23,9 @@ const MapHome = () => {
   const mapRef = useRef<MapView | null>(null);
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
   const router = useRouter();
+  const [isFetchingMarkers, setIsFetchingMarkers] = useState(false);
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fetchIdRef = useRef<number>(0);
 
   useEffect(() => {
     (async () => {
@@ -41,11 +45,11 @@ const MapHome = () => {
         "Para reportar incidentes en la vía pública necesitas tener una cuenta activa. ¿Quieres iniciar sesión ahora?",
         [
           { text: "Después", style: "cancel" },
-          { 
-            text: "Ir al Login", 
-            onPress: () => router.push("/login")
-          }
-        ]
+          {
+            text: "Ir al Login",
+            onPress: () => router.push("/login"),
+          },
+        ],
       );
     }
   };
@@ -65,14 +69,29 @@ const MapHome = () => {
     }
   };
 
-  const loadMarkersForRegion = async (region: Region) => {
-    try {
-      const data = await fetchMapMakers(region);
-      setMarkers(data);
-    } catch (error) {
-      console.log("Error al cargar marcadores:", error);
+  const loadMarkersForRegion = useCallback((region: Region) => {
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
     }
-  };
+
+    debounceTimer.current = setTimeout(async () => {
+      const currentFetchId = ++fetchIdRef.current;
+
+      try {
+        setIsFetchingMarkers(true);
+        const data = await fetchMapMakers(region);
+        if (currentFetchId === fetchIdRef.current) {
+          setMarkers(data);
+        }
+      } catch (error) {
+        console.log("Error al cargar marcadores:", error);
+      } finally {
+        if (currentFetchId === fetchIdRef.current) {
+          setIsFetchingMarkers(false);
+        }
+      }
+    }, 500);
+  }, []);
   return (
     <Container>
       {isModalVisible && (
@@ -80,9 +99,9 @@ const MapHome = () => {
       )}
 
       {selectedReportId !== null && (
-        <ReportDetailModal 
-          reportId={selectedReportId} 
-          onClose={() => setSelectedReportId(null)} 
+        <ReportDetailModal
+          reportId={selectedReportId}
+          onClose={() => setSelectedReportId(null)}
         />
       )}
       <Map
@@ -108,6 +127,7 @@ const MapHome = () => {
             pinColor={marker.statusColor}
             title={`Reporte: ${marker.status}`}
             description="Toca para ver detalles"
+            tracksViewChanges={false}
           />
         ))}
       </Map>
@@ -130,6 +150,20 @@ const Container = styled.View`
 const Map = styled(MapView)`
   width: 100%;
   height: 100%;
+`;
+
+const LoadingIndicatorContainer = styled.View`
+  position: absolute;
+  top: 50px;
+  align-self: center;
+  background-color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  elevation: 5;
+  shadow-color: #000;
+  shadow-offset: 0px 2px;
+  shadow-opacity: 0.25;
+  shadow-radius: 3.84px;
 `;
 
 const CenterLocation = styled.TouchableOpacity`
