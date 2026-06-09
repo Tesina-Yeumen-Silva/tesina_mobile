@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { User, LoginRequest, RegisterRequest } from "@/types/auth.types";
-import { loginLocal, logoutBackend, registerLocal } from "@/api/auth.api";
+import { loginLocal, logoutBackend, registerLocal, confirmRegister } from "@/api/auth.api";
 import {
   saveToken,
   clearTokens,
@@ -16,7 +16,8 @@ interface AuthState {
   login: (credentials: LoginRequest) => Promise<void>;
   logout: () => Promise<void>;
   checkSession: () => Promise<void>;
-  register: (userData: RegisterRequest) => Promise<void>;
+  register: (userData: RegisterRequest) => Promise<string>;
+  confirmRegister: (email: string, code: string, signupToken: string) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -74,6 +75,17 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoading: true });
     try {
       const data = await registerLocal(userData);
+      set({ isLoading: false });
+      return data.signupToken;
+    } catch (error) {
+      set({ isLoading: false });
+      throw error;
+    }
+  },
+  confirmRegister: async (email: string, code: string, signupToken: string) => {
+    set({ isLoading: true });
+    try {
+      const data = await confirmRegister({ email, code, signupToken });
 
       await saveToken(data.token);
       await saveRefreshToken(data.refreshToken);

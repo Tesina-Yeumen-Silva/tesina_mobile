@@ -21,3 +21,13 @@ export interface RegisterRequest {
   password: string;
 }
 
+export interface RegisterResponse {
+  signupToken: string;
+}
+
+export interface ConfirmRegisterRequest {
+  email: string;
+  code: string;
+  signupToken: string;
+}
+
