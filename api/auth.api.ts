@@ -4,6 +4,8 @@ import {
   LoginRequest,
   AuthResponse,
   RegisterRequest,
+  RegisterResponse,
+  ConfirmRegisterRequest,
 } from "@/types/auth.types";
 
 export const loginLocal = async (
@@ -15,8 +17,15 @@ export const loginLocal = async (
 
 export const registerLocal = async (
   userData: RegisterRequest,
+): Promise<RegisterResponse> => {
+  const response = await api.post<RegisterResponse>("/auth/register", userData);
+  return response.data;
+};
+
+export const confirmRegister = async (
+  data: ConfirmRegisterRequest,
 ): Promise<AuthResponse> => {
-  const response = await api.post<AuthResponse>("/auth/register", userData);
+  const response = await api.post<AuthResponse>("/auth/register/confirm", data);
   return response.data;
 };
 
