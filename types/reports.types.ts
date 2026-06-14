@@ -52,3 +52,18 @@ export interface PaginatedReportsResponse {
   data: UserReports[];
   meta: PaginationMeta;
 }
+
+export interface ReportHistoryItem {
+  id: number;
+  reportId: number;
+  stateId: number;
+  observation: string;
+  createdAt: string;
+  state: {
+    id: number;
+    name: string;
+    color: string;
+  };
+}
+
+export type ReportHistoryResponse = ReportHistoryItem[];

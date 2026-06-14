@@ -4,6 +4,7 @@ import {
   CreateReport,
   PaginatedReportsResponse,
   ReportDetails,
+  ReportHistoryResponse,
   ReportMaker,
   UserReports,
 } from "@/types/reports.types";
@@ -67,7 +68,16 @@ export const toggleAdhesion = async (
   return response.data.data;
 };
 
-export const getReportsByUserId = async (page: number = 1): Promise<PaginatedReportsResponse> => {
+export const getReportsByUserId = async (
+  page: number = 1,
+): Promise<PaginatedReportsResponse> => {
   const response = await api.get(`/reports/user-reports?page=${page}&limit=10`);
-  return response.data; 
+  return response.data;
+};
+
+export const getHistoryByReportId = async (
+  reportId: number,
+): Promise<ReportHistoryResponse> => {
+  const response = await api.get(`/reports/${reportId}/history`);
+  return response.data.data;
 };

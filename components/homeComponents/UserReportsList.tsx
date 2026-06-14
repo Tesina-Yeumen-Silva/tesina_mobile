@@ -1,6 +1,6 @@
 import styled from "styled-components/native";
 import { Text, View } from "@/components/Themed";
-import { MaterialIcons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { getReportsByUserId } from "@/api/reports.api";
 import { UserReports } from "@/types/reports.types";
 import { useEffect, useState } from "react";
@@ -8,6 +8,7 @@ import { ActivityIndicator, Alert, FlatList } from "react-native";
 import { formatDate } from "@/utils/formatDate";
 import ReportDetailModal from "./ReportDetailsModal";
 import { useInfiniteQuery } from "@tanstack/react-query";
+import ReportHistoryModal from "./ReportHistoryModal";
 
 const getCategoryIcon = (
   categoryName: string,
@@ -30,6 +31,9 @@ const getCategoryIcon = (
 
 const UserReportsList = () => {
   const [selectedReportId, setSelectedReportId] = useState<number | null>(null);
+  const [selectedHistoryId, setSelectedHistoryId] = useState<number | null>(
+    null,
+  );
 
   const {
     data,
@@ -79,6 +83,10 @@ const UserReportsList = () => {
           <CategoryText numberOfLines={1}>{item.categoryName}</CategoryText>
           <AddressText numberOfLines={1}>{item.address}</AddressText>
           <DateText>{formatDate(item.createdAt)}</DateText>
+          <HistoryButton onPress={() => setSelectedHistoryId(item.id)}>
+            <Ionicons name="time-outline" size={12} color="#2196F3" />
+            <HistoryButtonText>Ver historial</HistoryButtonText>
+          </HistoryButton>
         </InfoContainer>
         <StatusBadge badgeColor={item.stateColor}>
           <StatusText>{item.stateName}</StatusText>
@@ -125,6 +133,13 @@ const UserReportsList = () => {
         <ReportDetailModal
           reportId={selectedReportId}
           onClose={() => setSelectedReportId(null)}
+        />
+      )}
+
+      {selectedHistoryId !== null && (
+        <ReportHistoryModal
+          reportId={selectedHistoryId}
+          onClose={() => setSelectedHistoryId(null)}
         />
       )}
     </Container>
@@ -224,4 +239,18 @@ const StatusText = styled.Text`
   color: white;
   font-size: 12px;
   font-weight: bold;
+`;
+
+const HistoryButton = styled.TouchableOpacity`
+  flex-direction: row;
+  align-items: center;
+  margin-top: 6px;
+  align-self: flex-start;
+`;
+
+const HistoryButtonText = styled.Text`
+  font-size: 12px;
+  color: #2196f3;
+  margin-left: 4px;
+  font-weight: 600;
 `;
