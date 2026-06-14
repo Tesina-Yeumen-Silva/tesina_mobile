@@ -7,12 +7,13 @@ import {
   FlatList,
   Keyboard,
   Modal,
+  Platform,
   StyleSheet,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
-import MapView, { Region } from "react-native-maps";
+import MapView, { Region, UrlTile } from "react-native-maps";
 import styled from "styled-components/native";
 interface MapPickerProps {
   visible: boolean;
@@ -136,13 +137,21 @@ const MapPickerModal = ({ visible, onClose, onConfirm }: MapPickerProps) => {
         <MapView
           ref={mapRef}
           style={StyleSheet.absoluteFillObject}
+          mapType={Platform.OS === "android" ? "none" : "standard"}
           initialRegion={region}
           onTouchStart={() => {
             Keyboard.dismiss();
             setSearchResults([]);
           }}
           onRegionChangeComplete={(newRegion) => setRegion(newRegion)}
-        />
+        >
+          <UrlTile
+            urlTemplate="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+            maximumZ={19}
+            tileSize={256}
+            shouldReplaceMapContent={true}
+          />
+        </MapView>
 
         <Header>
           <CircleButton onPress={onClose}>

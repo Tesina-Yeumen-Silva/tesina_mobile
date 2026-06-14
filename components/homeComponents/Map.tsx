@@ -1,6 +1,6 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import MapView, { Region, Marker } from "react-native-maps";
+import MapView, { Region, Marker, UrlTile } from "react-native-maps";
 import styled from "styled-components/native";
 import ReportModal from "./ReportModal";
 import * as Location from "expo-location";
@@ -8,7 +8,7 @@ import { ReportMaker } from "@/types/reports.types";
 import { fetchMapMakers } from "@/api/reports.api";
 import ReportDetailModal from "./ReportDetailsModal";
 import { useRouter } from "expo-router";
-import { ActivityIndicator, Alert } from "react-native";
+import { ActivityIndicator, Alert, Platform } from "react-native";
 import { useAuthStore } from "@/store/authStore";
 
 const MapHome = () => {
@@ -108,6 +108,7 @@ const MapHome = () => {
         ref={mapRef}
         userInterfaceStyle="light"
         showsUserLocation={true}
+        mapType={Platform.OS === "android" ? "none" : "standard"}
         initialRegion={{
           latitude: -32.8894,
           longitude: -68.8458,
@@ -116,6 +117,12 @@ const MapHome = () => {
         }}
         onRegionChangeComplete={loadMarkersForRegion}
       >
+        <UrlTile
+          urlTemplate="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+          maximumZ={19}
+          tileSize={256}
+          shouldReplaceMapContent={true}
+        />
         {markers.map((marker) => (
           <Marker
             key={marker.id}
