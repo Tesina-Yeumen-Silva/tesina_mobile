@@ -2,6 +2,7 @@ import { Text, TextInput, View } from "@/components/Themed";
 import { useAuthStore } from "@/store/authStore";
 import { useRouter } from "expo-router";
 import { useState } from "react";
+import { useGoogleAuth } from "@/hooks/useGoogleAuth";
 import {
   ActivityIndicator,
   Alert,
@@ -13,13 +14,14 @@ import {
 } from "react-native";
 import styled, { useTheme } from "styled-components/native";
 import { BackButton } from "../iu/BackButton";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons, AntDesign } from "@expo/vector-icons";
 
 const LoginComponent = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [isPasswordSecure, setIsPasswordSecure] = useState<boolean>(true);
   const router = useRouter();
+  const { startGoogleAuth, isGoogleLoading } = useGoogleAuth();
 
   const login = useAuthStore((state) => state.login);
   const isLoading = useAuthStore((state) => state.isLoading);
@@ -106,16 +108,39 @@ const LoginComponent = () => {
                 )}
               </LoginButton>
 
+              <DividerContainer>
+                <Line />
+                <DividerText>O ingresar con</DividerText>
+                <Line />
+              </DividerContainer>
+
+              <GoogleButton
+                onPress={startGoogleAuth}
+                disabled={isGoogleLoading}
+              >
+                {isGoogleLoading ? (
+                  <ActivityIndicator color={theme.text} />
+                ) : (
+                  <>
+                    <AntDesign
+                      name="google"
+                      size={20}
+                      color={theme.text}
+                      style={{ marginRight: 10 }}
+                    />
+                    <GoogleButtonText>Google</GoogleButtonText>
+                  </>
+                )}
+              </GoogleButton>
+
               <LinkWrapper onPress={() => router.push("/register")}>
                 <TextNormal>¿No tienes cuenta?</TextNormal>
                 <TextBold>Regístrate aquí</TextBold>
               </LinkWrapper>
 
               <LinkWrapper onPress={() => router.push("/restorePassword")}>
-              <TextBold>¿Olvidaste tu contraseña?</TextBold>
-              
+                <TextBold>¿Olvidaste tu contraseña?</TextBold>
               </LinkWrapper>
-              
             </LoginCard>
           </Container>
         </TouchableWithoutFeedback>
@@ -211,4 +236,42 @@ export const TextBold = styled.Text`
   font-size: 14px;
   font-weight: bold;
   margin-left: 5px;
+`;
+
+const DividerContainer = styled.View`
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  margin-top: 20px;
+  margin-bottom: 5px;
+`;
+
+const Line = styled.View`
+  flex: 1;
+  height: 1px;
+  background-color: ${(props) => props.theme.border};
+`;
+
+const DividerText = styled(Text)`
+  margin-horizontal: 10px;
+  font-size: 14px;
+  opacity: 0.6;
+`;
+
+const GoogleButton = styled.TouchableOpacity`
+  width: 100%;
+  height: 55px;
+  background-color: ${(props) => props.theme.background};
+  border-radius: 12px;
+  border-width: 1px;
+  border-color: ${(props) => props.theme.border};
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
+`;
+
+const GoogleButtonText = styled(Text)`
+  font-size: 16px;
+  font-weight: bold;
 `;

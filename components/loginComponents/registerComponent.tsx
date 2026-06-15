@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, TextInput, Text } from "@/components/Themed";
 import styled, { useTheme } from "styled-components/native";
 import { BackButton } from "../iu/BackButton";
+import { useGoogleAuth } from "@/hooks/useGoogleAuth";
 import {
   ActivityIndicator,
   Alert,
@@ -11,7 +12,7 @@ import {
   ScrollView,
   TouchableWithoutFeedback,
 } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons, AntDesign } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useAuthStore } from "@/store/authStore";
 
@@ -25,6 +26,7 @@ const RegisterComponent = () => {
   const [code, setCode] = useState<string>("");
   const [signupToken, setSignupToken] = useState<string>("");
   const [countdown, setCountdown] = useState<number>(60);
+  const { startGoogleAuth, isGoogleLoading } = useGoogleAuth();
 
   const theme = useTheme();
   const router = useRouter();
@@ -76,7 +78,8 @@ const RegisterComponent = () => {
       router.replace("/");
     } catch (error: any) {
       const errorMessage =
-        error.response?.data?.message || "Hubo un problema al verificar el código";
+        error.response?.data?.message ||
+        "Hubo un problema al verificar el código";
       Alert.alert("Error en la verificación", errorMessage);
     }
   };
@@ -182,13 +185,46 @@ const RegisterComponent = () => {
                       <RegisterButtonText>Registrarse</RegisterButtonText>
                     )}
                   </RegisterButton>
+
+                  <DividerContainer>
+                    <Line />
+                    <DividerText>O registrarse con</DividerText>
+                    <Line />
+                  </DividerContainer>
+
+                  <GoogleButton
+                    onPress={startGoogleAuth}
+                    disabled={isGoogleLoading}
+                  >
+                    {isGoogleLoading ? (
+                      <ActivityIndicator color={theme.text} />
+                    ) : (
+                      <>
+                        <AntDesign
+                          name="google"
+                          size={20}
+                          color={theme.text}
+                          style={{ marginRight: 10 }}
+                        />
+                        <GoogleButtonText>Google</GoogleButtonText>
+                      </>
+                    )}
+                  </GoogleButton>
                 </>
               )}
 
               {step === 2 && (
                 <>
-                  <Text style={{ marginBottom: 15, textAlign: "center", color: theme.text, opacity: 0.8 }}>
-                    Ingresa el código de 6 dígitos enviado a tu correo electrónico: {email}
+                  <Text
+                    style={{
+                      marginBottom: 15,
+                      textAlign: "center",
+                      color: theme.text,
+                      opacity: 0.8,
+                    }}
+                  >
+                    Ingresa el código de 6 dígitos enviado a tu correo
+                    electrónico: {email}
                   </Text>
 
                   <InputEmail
@@ -359,4 +395,42 @@ const BackToFormText = styled(Text)`
   color: ${(props) => props.theme.text};
   opacity: 0.7;
   text-decoration-line: underline;
+`;
+
+const DividerContainer = styled.View`
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  margin-top: 20px;
+  margin-bottom: 5px;
+`;
+
+const Line = styled.View`
+  flex: 1;
+  height: 1px;
+  background-color: ${(props) => props.theme.border};
+`;
+
+const DividerText = styled(Text)`
+  margin-horizontal: 10px;
+  font-size: 14px;
+  opacity: 0.6;
+`;
+
+const GoogleButton = styled.TouchableOpacity`
+  width: 100%;
+  height: 55px;
+  background-color: ${(props) => props.theme.background};
+  border-radius: 12px;
+  border-width: 1px;
+  border-color: ${(props) => props.theme.border};
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
+`;
+
+const GoogleButtonText = styled(Text)`
+  font-size: 16px;
+  font-weight: bold;
 `;
