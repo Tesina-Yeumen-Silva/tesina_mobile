@@ -1,6 +1,6 @@
 import styled, { useTheme } from "styled-components/native";
 import { Text, TextInput, View } from "@/components/Themed";
-import { BackButton } from "../iu/BackButton";
+import { BackButton } from "@/components/ui/BackButton";
 import {
   ActivityIndicator,
   Alert,
@@ -10,12 +10,12 @@ import {
   ScrollView,
   TouchableWithoutFeedback,
 } from "react-native";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { confirmPasswordReset, requestPasswordReset } from "@/api/auth.api";
+import { authController } from "@/controllers/auth.controller";
 
-const RestorePasswordComponent = () => {
+const RestorePasswordView = () => {
   const [step, setStep] = useState<1 | 2>(1);
   const [email, setEmail] = useState<string>("");
   const [code, setCode] = useState<string>("");
@@ -46,9 +46,13 @@ const RestorePasswordComponent = () => {
           return;
         }
 
-        await requestPasswordReset(email);
-        Alert.alert("Éxito", "Te hemos enviado un código a tu correo");
-        setStep(2);
+        const result = await authController.requestPasswordResetAction(email);
+        if (result.ok) {
+          Alert.alert("Éxito", "Te hemos enviado un código a tu correo");
+          setStep(2);
+        } else {
+          Alert.alert("Error", result.error || "Ocurrió un error");
+        }
       } else {
         if (!code || !password) {
           Alert.alert("Error", "Ingresa el código y tu nueva contraseña");
@@ -56,16 +60,16 @@ const RestorePasswordComponent = () => {
           return;
         }
 
-        await confirmPasswordReset(email, code, password);
-        Alert.alert(
-          "¡Listo!",
-          "Tu contraseña ha sido actualizada exitosamente.",
-        );
-        router.replace("/login");
+        const result = await authController.confirmPasswordResetAction(email, code, password);
+        if (result.ok) {
+          Alert.alert("¡Listo!", "Tu contraseña ha sido actualizada exitosamente.");
+          router.replace("/login");
+        } else {
+          Alert.alert("Error", result.error || "Ocurrió un error");
+        }
       }
     } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message || "Ocurrió un error inesperado";
+      const errorMessage = error.message || "Ocurrió un error inesperado";
       Alert.alert("Error", errorMessage);
     } finally {
       setIsLoading(false);
@@ -74,17 +78,14 @@ const RestorePasswordComponent = () => {
 
   const handleResendCode = async () => {
     setIsLoading(true);
-    try {
-      await requestPasswordReset(email);
+    const result = await authController.requestPasswordResetAction(email);
+    if (result.ok) {
       setCountdown(60);
       Alert.alert("Éxito", "Te hemos enviado un nuevo código");
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message || "Ocurrió un error al reenviar";
-      Alert.alert("Error", errorMessage);
-    } finally {
-      setIsLoading(false);
+    } else {
+      Alert.alert("Error", result.error || "Ocurrió un error al reenviar");
     }
+    setIsLoading(false);
   };
 
   return (
@@ -185,7 +186,7 @@ const RestorePasswordComponent = () => {
   );
 };
 
-export default RestorePasswordComponent;
+export default RestorePasswordView;
 
 const Container = styled(View)`
   flex: 1;

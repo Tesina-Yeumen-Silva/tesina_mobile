@@ -1,11 +1,8 @@
-import styled from 'styled-components/native'
-import { Text, View } from '@/components/Themed'
-import RestorePasswordComponent from '@/components/loginComponents/RestorePasswordComponent'
+import React from "react";
+import RestorePasswordView from "@/views/restorePassword.view";
 
 const Restore = () => {
-  return <RestorePasswordComponent/>
-}
-export default Restore
+  return <RestorePasswordView />;
+};
 
-
-
+export default Restore;

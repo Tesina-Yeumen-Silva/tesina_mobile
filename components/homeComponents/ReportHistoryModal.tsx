@@ -1,8 +1,8 @@
 import styled, { useTheme } from "styled-components/native";
 import { Text, View } from "@/components/Themed";
 import { useEffect, useState } from "react";
-import { getHistoryByReportId } from "@/api/reports.api";
-import { ReportHistoryResponse } from "@/types/reports.types";
+import { reportsController } from "@/controllers/reports.controller";
+import { ReportHistoryResponse } from "@/models";
 import { ActivityIndicator, FlatList, Modal } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { formatDate } from "@/utils/formatDate";
@@ -20,7 +20,7 @@ const ReportHistoryModal = ({ reportId, onClose }: props) => {
   useEffect(() => {
     const loadHistory = async () => {
       try {
-        const data = await getHistoryByReportId(reportId);
+        const data = await reportsController.getHistoryByReportIdAction(reportId);
         setHistory(data);
       } catch (error) {
         console.log("Error al cargar detalle:", error);

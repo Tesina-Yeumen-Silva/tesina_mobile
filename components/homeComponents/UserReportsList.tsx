@@ -1,8 +1,8 @@
 import styled from "styled-components/native";
 import { Text, View } from "@/components/Themed";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { getReportsByUserId } from "@/api/reports.api";
-import { UserReports } from "@/types/reports.types";
+import { reportsController } from "@/controllers/reports.controller";
+import { UserReports } from "@/models";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, FlatList } from "react-native";
 import { formatDate } from "@/utils/formatDate";
@@ -45,7 +45,10 @@ const UserReportsList = () => {
     isFetchingNextPage,
   } = useInfiniteQuery({
     queryKey: ["userReports"],
-    queryFn: ({ pageParam = 1 }) => getReportsByUserId(pageParam),
+    queryFn: async ({ pageParam = 1 }) => {
+      const res = await reportsController.getReportsByUserIdAction(pageParam);
+      return res || { data: [], meta: { total: 0, page: 1, limit: 10, hasMore: false } };
+    },
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
       return lastPage.meta.hasMore ? lastPage.meta.page + 1 : undefined;

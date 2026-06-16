@@ -2,7 +2,7 @@ import { Dropdown } from "react-native-element-dropdown";
 import styled, { useTheme } from "styled-components/native";
 import { View } from "../Themed";
 import { useEffect, useState } from "react";
-import { getCategories } from "@/api/category.api";
+import { categoryService } from "@/services/category.service";
 import { ActivityIndicator } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -36,7 +36,7 @@ const DropdownComponent = ({
           setIsLoading(false);
         }
 
-        const categoriesFromDB = await getCategories();
+        const categoriesFromDB = await categoryService.getCategories();
         const formattedData = categoriesFromDB.map((cat: any) => ({
           label: cat.name,
           value: String(cat.id),

@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { View, TextInput, Text } from "@/components/Themed";
 import styled, { useTheme } from "styled-components/native";
-import { BackButton } from "../iu/BackButton";
-import { useGoogleAuth } from "@/hooks/useGoogleAuth";
+import { BackButton } from "@/components/ui/BackButton";
 import {
   ActivityIndicator,
   Alert,
@@ -15,8 +14,10 @@ import {
 import { MaterialCommunityIcons, AntDesign } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useAuthStore } from "@/store/authStore";
+import { authController } from "@/controllers/auth.controller";
+import { useGoogleAuth } from "@/hooks/useGoogleAuth";
 
-const RegisterComponent = () => {
+const RegisterView = () => {
   const [step, setStep] = useState<1 | 2>(1);
   const [name, setName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
@@ -26,12 +27,11 @@ const RegisterComponent = () => {
   const [code, setCode] = useState<string>("");
   const [signupToken, setSignupToken] = useState<string>("");
   const [countdown, setCountdown] = useState<number>(60);
-  const { startGoogleAuth, isGoogleLoading } = useGoogleAuth();
 
   const theme = useTheme();
   const router = useRouter();
-
-  const { register, confirmRegister, isLoading } = useAuthStore();
+  const isLoading = useAuthStore((state) => state.isLoading);
+  const { startGoogleAuth, isGoogleLoading } = useGoogleAuth();
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
@@ -53,16 +53,14 @@ const RegisterComponent = () => {
       return;
     }
 
-    try {
-      const token = await register({ email, name, password });
-      setSignupToken(token);
+    const result = await authController.registerAction({ email, name, password });
+    if (result.ok && result.data) {
+      setSignupToken(result.data);
       setCountdown(60);
       setStep(2);
       Alert.alert("Éxito", "Te hemos enviado un código a tu correo.");
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message || "Hubo un problema al crear la cuenta";
-      Alert.alert("Error en el registro", errorMessage);
+    } else {
+      Alert.alert("Error en el registro", result.error || "Hubo un problema al crear la cuenta");
     }
   };
 
@@ -72,28 +70,23 @@ const RegisterComponent = () => {
       return;
     }
 
-    try {
-      await confirmRegister(email, code, signupToken);
+    const result = await authController.confirmRegisterAction(email, code, signupToken);
+    if (result.ok) {
       Alert.alert("Correcto", "Usted fue registrado con éxito");
       router.replace("/");
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message ||
-        "Hubo un problema al verificar el código";
-      Alert.alert("Error en la verificación", errorMessage);
+    } else {
+      Alert.alert("Error en la verificación", result.error || "Hubo un problema al verificar el código");
     }
   };
 
   const handleResendCode = async () => {
-    try {
-      const token = await register({ email, name, password });
-      setSignupToken(token);
+    const result = await authController.registerAction({ email, name, password });
+    if (result.ok && result.data) {
+      setSignupToken(result.data);
       setCountdown(60);
       Alert.alert("Éxito", "Te hemos enviado un nuevo código.");
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message || "Ocurrió un error al reenviar";
-      Alert.alert("Error", errorMessage);
+    } else {
+      Alert.alert("Error", result.error || "Ocurrió un error al reenviar");
     }
   };
 
@@ -192,20 +185,12 @@ const RegisterComponent = () => {
                     <Line />
                   </DividerContainer>
 
-                  <GoogleButton
-                    onPress={startGoogleAuth}
-                    disabled={isGoogleLoading}
-                  >
+                  <GoogleButton onPress={startGoogleAuth} disabled={isGoogleLoading}>
                     {isGoogleLoading ? (
                       <ActivityIndicator color={theme.text} />
                     ) : (
                       <>
-                        <AntDesign
-                          name="google"
-                          size={20}
-                          color={theme.text}
-                          style={{ marginRight: 10 }}
-                        />
+                        <AntDesign name="google" size={20} color={theme.text} style={{ marginRight: 10 }} />
                         <GoogleButtonText>Google</GoogleButtonText>
                       </>
                     )}
@@ -215,16 +200,8 @@ const RegisterComponent = () => {
 
               {step === 2 && (
                 <>
-                  <Text
-                    style={{
-                      marginBottom: 15,
-                      textAlign: "center",
-                      color: theme.text,
-                      opacity: 0.8,
-                    }}
-                  >
-                    Ingresa el código de 6 dígitos enviado a tu correo
-                    electrónico: {email}
+                  <Text style={{ marginBottom: 15, textAlign: "center", color: theme.text, opacity: 0.8 }}>
+                    Ingresa el código de 6 dígitos enviado a tu correo electrónico: {email}
                   </Text>
 
                   <InputEmail
@@ -278,7 +255,7 @@ const RegisterComponent = () => {
   );
 };
 
-export default RegisterComponent;
+export default RegisterView;
 
 const Container = styled(View)`
   flex: 1;
@@ -378,6 +355,7 @@ export const ResendTextActive = styled(Text)`
   color: ${(props: any) => props.theme.tint};
   font-weight: bold;
   text-align: center;
+};
 `;
 
 const BackButtonContainer = styled.View`

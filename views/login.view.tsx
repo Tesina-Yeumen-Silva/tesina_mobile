@@ -1,8 +1,7 @@
 import { Text, TextInput, View } from "@/components/Themed";
 import { useAuthStore } from "@/store/authStore";
 import { useRouter } from "expo-router";
-import { useState } from "react";
-import { useGoogleAuth } from "@/hooks/useGoogleAuth";
+import React, { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -13,19 +12,20 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 import styled, { useTheme } from "styled-components/native";
-import { BackButton } from "../iu/BackButton";
+import { BackButton } from "@/components/ui/BackButton";
 import { MaterialCommunityIcons, AntDesign } from "@expo/vector-icons";
+import { authController } from "@/controllers/auth.controller";
+import { useGoogleAuth } from "@/hooks/useGoogleAuth";
 
-const LoginComponent = () => {
+const LoginView = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [isPasswordSecure, setIsPasswordSecure] = useState<boolean>(true);
   const router = useRouter();
-  const { startGoogleAuth, isGoogleLoading } = useGoogleAuth();
-
-  const login = useAuthStore((state) => state.login);
-  const isLoading = useAuthStore((state) => state.isLoading);
   const theme = useTheme();
+
+  const isLoading = useAuthStore((state) => state.isLoading);
+  const { startGoogleAuth, isGoogleLoading } = useGoogleAuth();
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -34,10 +34,14 @@ const LoginComponent = () => {
     }
 
     try {
-      await login({ email, password });
-      setEmail("");
-      setPassword("");
-      router.replace("/");
+      const result = await authController.loginAction({ email, password });
+      if (result.ok) {
+        setEmail("");
+        setPassword("");
+        router.replace("/");
+      } else {
+        Alert.alert("Error de autenticación", result.error || "Email o contraseña incorrectos");
+      }
     } catch (error) {
       Alert.alert("Error de autenticación", "Email o contraseña incorrectos");
     }
@@ -114,20 +118,12 @@ const LoginComponent = () => {
                 <Line />
               </DividerContainer>
 
-              <GoogleButton
-                onPress={startGoogleAuth}
-                disabled={isGoogleLoading}
-              >
+              <GoogleButton onPress={startGoogleAuth} disabled={isGoogleLoading}>
                 {isGoogleLoading ? (
                   <ActivityIndicator color={theme.text} />
                 ) : (
                   <>
-                    <AntDesign
-                      name="google"
-                      size={20}
-                      color={theme.text}
-                      style={{ marginRight: 10 }}
-                    />
+                    <AntDesign name="google" size={20} color={theme.text} style={{ marginRight: 10 }} />
                     <GoogleButtonText>Google</GoogleButtonText>
                   </>
                 )}
@@ -141,6 +137,7 @@ const LoginComponent = () => {
               <LinkWrapper onPress={() => router.push("/restorePassword")}>
                 <TextBold>¿Olvidaste tu contraseña?</TextBold>
               </LinkWrapper>
+
             </LoginCard>
           </Container>
         </TouchableWithoutFeedback>
@@ -149,7 +146,7 @@ const LoginComponent = () => {
   );
 };
 
-export default LoginComponent;
+export default LoginView;
 
 const Container = styled(View)`
   flex: 1;

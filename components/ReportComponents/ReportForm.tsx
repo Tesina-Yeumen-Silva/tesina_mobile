@@ -9,8 +9,8 @@ import {
   Text,
 } from "react-native";
 import * as Location from "expo-location";
-import { createReport } from "@/api/reports.api";
-import { CreateReport } from "@/types/reports.types";
+import { reportsController } from "@/controllers/reports.controller";
+import { CreateReport } from "@/models";
 import styled from "styled-components/native";
 import { TextInput, View } from "../Themed";
 import DropdownComponent from "../homeComponents/DropDownComponent";
@@ -20,7 +20,7 @@ import LocationSelector from "../homeComponents/LocationSelector";
 import * as Network from "expo-network";
 import { File } from "expo-file-system";
 import { documentDirectory } from "expo-file-system/legacy";
-import { saveOfflineReport } from "@/utils/offlineStorage";
+import { saveOfflineReport } from "@/services/offlineStorage";
 
 interface ReportFormProps {
   onSuccess?: () => void;
@@ -109,17 +109,21 @@ export const ReportForm = ({
           image: selectedImage,
         };
 
-        await createReport(payload);
+        const result = await reportsController.createReportAction(payload);
 
-        Alert.alert("¡Gracias!", "Tu reporte ha sido enviado exitosamente.");
+        if (result.ok) {
+          Alert.alert("¡Gracias!", "Tu reporte ha sido enviado exitosamente.");
 
-        setSelectedImage(null);
-        setSelectedLocation(null);
-        setSelectedCoords(null);
-        setselectedCategory(null);
-        setDescription("");
+          setSelectedImage(null);
+          setSelectedLocation(null);
+          setSelectedCoords(null);
+          setselectedCategory(null);
+          setDescription("");
 
-        if (onSuccess) onSuccess();
+          if (onSuccess) onSuccess();
+        } else {
+          Alert.alert("Error", result.error || "Hubo un problema al enviar el reporte. Intenta de nuevo.");
+        }
       } else {
         const filename = selectedImage.split("/").pop();
         const permanentImageUri = `${documentDirectory}offline_${Date.now()}_${filename}`;

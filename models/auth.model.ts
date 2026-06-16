@@ -30,4 +30,3 @@ export interface ConfirmRegisterRequest {
   code: string;
   signupToken: string;
 }
-

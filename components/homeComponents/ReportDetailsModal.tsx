@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { ReportDetails } from "@/types/reports.types";
+import { ReportDetails } from "@/models";
 import styled, { useTheme } from "styled-components/native";
-import { fetchReportById } from "@/api/reports.api";
+import { reportsController } from "@/controllers/reports.controller";
 import {
   ActivityIndicator,
   Alert,
@@ -12,7 +12,6 @@ import { Text, View } from "../Themed";
 import { Image } from "expo-image";
 import { ScrollView } from "react-native-gesture-handler";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { toggleAdhesion } from "@/api/reports.api";
 import { formatDate } from "@/utils/formatDate";
 
 interface Props {
@@ -30,7 +29,7 @@ const ReportDetailModal = ({ reportId, onClose }: Props) => {
     const loadDetails = async () => {
       try {
         setIsLoading(true);
-        const data = await fetchReportById(reportId);
+        const data = await reportsController.fetchReportByIdAction(reportId);
         setReportData(data);
       } catch (error) {
         console.log("Error al cargar detalle:", error);
@@ -45,23 +44,21 @@ const ReportDetailModal = ({ reportId, onClose }: Props) => {
   
 
   const toggleAdhesionHandler = async () => {
-    try {
-      const result = await toggleAdhesion(reportId);
+    const result = await reportsController.toggleAdhesionAction(reportId);
 
+    if (result.ok && result.data) {
       setReportData((prevData) => {
         if (!prevData) return null;
 
         return {
           ...prevData,
-          adhesionsCount: result.adhered
+          adhesionsCount: result.data!.adhered
             ? prevData.adhesionsCount + 1
             : prevData.adhesionsCount - 1,
         };
       });
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message || "Error al registrar apoyo";
-      Alert.alert("Aviso", errorMessage);
+    } else {
+      Alert.alert("Aviso", result.error || "Error al registrar apoyo");
     }
   };
 

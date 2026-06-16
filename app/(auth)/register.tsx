@@ -1,10 +1,8 @@
-import RegisterComponent from "@/components/loginComponents/registerComponent"
+import React from "react";
+import RegisterView from "@/views/register.view";
 
 const Register = () => {
-    
-  return <RegisterComponent/>
+  return <RegisterView />;
 };
+
 export default Register;
-
-
-

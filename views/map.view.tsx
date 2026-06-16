@@ -2,16 +2,16 @@ import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import MapView, { Region, Marker, UrlTile } from "react-native-maps";
 import styled from "styled-components/native";
-import ReportModal from "./ReportModal";
+import ReportModal from "@/components/homeComponents/ReportModal";
 import * as Location from "expo-location";
-import { ReportMaker } from "@/types/reports.types";
-import { fetchMapMakers } from "@/api/reports.api";
-import ReportDetailModal from "./ReportDetailsModal";
+import { ReportMaker } from "@/models";
+import { reportsController } from "@/controllers/reports.controller";
+import ReportDetailModal from "@/components/homeComponents/ReportDetailsModal";
 import { useRouter } from "expo-router";
 import { ActivityIndicator, Alert, Platform } from "react-native";
 import { useAuthStore } from "@/store/authStore";
 
-const MapHome = () => {
+const MapViewHome = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isReportDetailVisible, setIsReportDetailVisible] =
     useState<boolean>(false);
@@ -79,7 +79,7 @@ const MapHome = () => {
 
       try {
         setIsFetchingMarkers(true);
-        const data = await fetchMapMakers(region);
+        const data = await reportsController.fetchMapMakersAction(region);
         if (currentFetchId === fetchIdRef.current) {
           setMarkers(data);
         }
@@ -92,6 +92,7 @@ const MapHome = () => {
       }
     }, 500);
   }, []);
+
   return (
     <Container>
       {isModalVisible && (
@@ -147,7 +148,8 @@ const MapHome = () => {
     </Container>
   );
 };
-export default MapHome;
+
+export default MapViewHome;
 
 const Container = styled.View`
   flex: 1;
@@ -157,20 +159,6 @@ const Container = styled.View`
 const Map = styled(MapView)`
   width: 100%;
   height: 100%;
-`;
-
-const LoadingIndicatorContainer = styled.View`
-  position: absolute;
-  top: 50px;
-  align-self: center;
-  background-color: white;
-  padding: 8px 16px;
-  border-radius: 20px;
-  elevation: 5;
-  shadow-color: #000;
-  shadow-offset: 0px 2px;
-  shadow-opacity: 0.25;
-  shadow-radius: 3.84px;
 `;
 
 const CenterLocation = styled.TouchableOpacity`

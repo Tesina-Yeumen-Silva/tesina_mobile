@@ -3,7 +3,7 @@ import {
   getAccessToken,
   getRefreshToken,
   saveToken,
-} from "@/utils/secureStorage";
+} from "@/services/secureStorage";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -45,7 +45,7 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = await getRefreshToken(); 
+        const refreshToken = await getRefreshToken();
 
         if (!refreshToken) {
           throw new Error("No hay refresh token");
