@@ -1,4 +1,4 @@
-import { Text } from "@/components/Themed";
+import { Text } from "@/components/ui/Themed";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useEffect, useRef, useState } from "react";
 import {

@@ -12,11 +12,12 @@ import { reportsController } from "@/controllers/reports.controller";
 import { locationController } from "@/controllers/location.controller";
 import { CreateReport } from "@/models";
 import styled from "styled-components/native";
-import { TextInput, View } from "../Themed";
-import DropdownComponent from "../homeComponents/DropDownComponent";
-import MapPickerModal from "../homeComponents/MapPickerModal";
-import ImageSelector from "../homeComponents/ImageSelector";
-import LocationSelector from "../homeComponents/LocationSelector";
+import { TextInput, View } from "../ui/Themed";
+import { Button } from "../ui/Button";
+import DropdownComponent from "../shared/DropDownComponent";
+import MapPickerModal from "../map/MapPickerModal";
+import ImageSelector from "../shared/ImageSelector";
+import LocationSelector from "../map/LocationSelector";
 
 interface ReportFormProps {
   onSuccess?: () => void;
@@ -206,16 +207,22 @@ export const ReportForm = ({
             }}
           >
             {onCancel && (
-              <CloseButton onPress={onCancel} disabled={isLoading}>
-                <Text style={{ color: "white" }}>Cerrar</Text>
-              </CloseButton>
+              <Button
+                label="Cerrar"
+                variant="danger"
+                onPress={onCancel}
+                disabled={isLoading}
+                style={{ marginTop: 20 }}
+              />
             )}
 
-            <SentButton onPress={handleSend} disabled={isLoading}>
-              <Text style={{ color: "white" }}>
-                {isLoading ? "Enviando..." : "Enviar"}
-              </Text>
-            </SentButton>
+            <Button
+              label="Enviar"
+              variant="primary"
+              onPress={handleSend}
+              isLoading={isLoading}
+              style={{ marginTop: 20 }}
+            />
           </ButtonContainer>
         </ModalContent>
       </ScrollView>
@@ -281,16 +288,4 @@ const DescriptionText = styled(TextInput)`
   border-radius: 10px;
 `;
 
-const CloseButton = styled.TouchableOpacity`
-  margin-top: 20px;
-  background-color: #ff4444;
-  padding: 10px 20px;
-  border-radius: 10px;
-`;
 
-const SentButton = styled.TouchableOpacity`
-  margin-top: 20px;
-  background-color: #0e9aec;
-  padding: 10px 20px;
-  border-radius: 10px;
-`;

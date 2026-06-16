@@ -1,5 +1,5 @@
 import styled from "styled-components/native";
-import { Text, View } from "@/components/Themed";
+import { Text, View } from "@/components/ui/Themed";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { reportsController } from "@/controllers/reports.controller";
 import { UserReports } from "@/models";
@@ -9,6 +9,7 @@ import { formatDate } from "@/utils/formatDate";
 import ReportDetailModal from "./ReportDetailsModal";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import ReportHistoryModal from "./ReportHistoryModal";
+import { Badge } from "@/components/ui/Badge";
 
 const getCategoryIcon = (
   categoryName: string,
@@ -58,9 +59,7 @@ const ReportCardItemComponent = ({
           <HistoryButtonText>Ver historial</HistoryButtonText>
         </HistoryButton>
       </InfoContainer>
-      <StatusBadge badgeColor={item.stateColor}>
-        <StatusText>{item.stateName}</StatusText>
-      </StatusBadge>
+      <Badge text={item.stateName} color={item.stateColor} style={{ marginLeft: 10 }} />
     </ReportCard>
   );
 };
@@ -261,18 +260,7 @@ const DateText = styled.Text`
   margin-top: 4px;
 `;
 
-const StatusBadge = styled.View<{ badgeColor: string }>`
-  background-color: ${(props) => props.badgeColor || "#9E9E9E"};
-  padding: 5px 10px;
-  border-radius: 12px;
-  margin-left: 10px;
-`;
 
-const StatusText = styled.Text`
-  color: white;
-  font-size: 12px;
-  font-weight: bold;
-`;
 
 const HistoryButton = styled.TouchableOpacity`
   flex-direction: row;

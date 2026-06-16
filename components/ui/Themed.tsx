@@ -4,13 +4,14 @@
  */
 
 import Colors from "@/constants/Colors";
+import styled from "styled-components/native";
 import {
   Text as DefaultText,
   TextInput as DefaultTextInput,
   TextInputProps as DefaultTextInputProps,
   View as DefaultView,
 } from "react-native";
-import { useColorScheme } from "./useColorScheme";
+import { useColorScheme } from "@/hooks/useColorScheme";
 
 type ThemeProps = {
   lightColor?: string;
@@ -71,3 +72,30 @@ export function TextInput(props: TextInputProps) {
     />
   );
 }
+
+export const ModalOverlay = styled(View)`
+  flex: 1;
+  background-color: rgba(0, 0, 0, 0.65);
+  justify-content: flex-end;
+`;
+
+export const ModalBottomSheet = styled(View)`
+  background-color: ${(props) => props.theme.background || "white"};
+  padding: 25px;
+  border-top-left-radius: 30px;
+  border-top-right-radius: 30px;
+  max-height: 85%;
+  min-height: 40%;
+`;
+
+export const LoaderContainer = styled(View)`
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0;
+`;
+
+export const InfoRow = styled(View)`
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 8px;
+`;

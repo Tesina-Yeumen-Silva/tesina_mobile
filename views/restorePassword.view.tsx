@@ -1,5 +1,5 @@
 import styled, { useTheme } from "styled-components/native";
-import { Text, TextInput, View } from "@/components/Themed";
+import { Text, TextInput, View } from "@/components/ui/Themed";
 import { BackButton } from "@/components/ui/BackButton";
 import {
   ActivityIndicator,

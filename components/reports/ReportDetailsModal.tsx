@@ -8,11 +8,13 @@ import {
   Modal,
   TouchableOpacity,
 } from "react-native";
-import { Text, View } from "../Themed";
+import { Text, View, ModalOverlay, ModalBottomSheet, LoaderContainer, InfoRow } from "../ui/Themed";
 import { Image } from "expo-image";
 import { ScrollView } from "react-native-gesture-handler";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { formatDate } from "@/utils/formatDate";
+import { Button } from "../ui/Button";
+import { Badge } from "../ui/Badge";
 
 interface Props {
   reportId: number;
@@ -41,8 +43,6 @@ const ReportDetailModal = ({ reportId, onClose }: Props) => {
     loadDetails();
   }, [reportId]);
 
-  
-
   const toggleAdhesionHandler = async () => {
     const result = await reportsController.toggleAdhesionAction(reportId);
 
@@ -69,8 +69,8 @@ const ReportDetailModal = ({ reportId, onClose }: Props) => {
       transparent={true}
       onRequestClose={onClose}
     >
-      <Overlay>
-        <ModalContainer>
+      <ModalOverlay>
+        <ModalBottomSheet style={{ maxHeight: "85%" }}>
           {isLoading ? (
             <LoaderContainer>
               <ActivityIndicator size="large" color={theme.tint} />
@@ -81,15 +81,15 @@ const ReportDetailModal = ({ reportId, onClose }: Props) => {
           ) : reportData ? (
             <ScrollView showsVerticalScrollIndicator={false}>
               <Header>
-                <CategoryBadge>
-                  <CategoryText>
-                    {reportData.category.toUpperCase()}
-                  </CategoryText>
-                </CategoryBadge>
-                <StatusBadge
-                  style={{ backgroundColor: reportData.statusColor }}
-                ></StatusBadge>
-                <StatusText>{reportData.status}</StatusText>
+                <Badge
+                  text={reportData.category.toUpperCase()}
+                  color="transparent"
+                  style={{ borderWidth: 1, borderColor: theme.border }}
+                />
+                <StatusWrapper>
+                  <StatusDot style={{ backgroundColor: reportData.statusColor }} />
+                  <StatusText>{reportData.status}</StatusText>
+                </StatusWrapper>
                 <StatusText>{formatDate(reportData.updatedState)}</StatusText>
               </Header>
               {reportData.imageUrl && (
@@ -149,9 +149,7 @@ const ReportDetailModal = ({ reportId, onClose }: Props) => {
                 <DescriptionText>{reportData.description}</DescriptionText>
               </DescriptionContainer>
 
-              <CloseButton onPress={onClose}>
-                <CloseButtonText>Cerrar</CloseButtonText>
-              </CloseButton>
+              <Button label="Cerrar" variant="close" onPress={onClose} />
             </ScrollView>
           ) : (
             <LoaderContainer>
@@ -159,42 +157,21 @@ const ReportDetailModal = ({ reportId, onClose }: Props) => {
               <Text style={{ marginTop: 10 }}>
                 No se pudo cargar la información.
               </Text>
-              <CloseButton
+              <Button
+                label="Volver"
+                variant="close"
                 onPress={onClose}
-                style={{ marginTop: 20, width: "100%" }}
-              >
-                <CloseButtonText>Volver</CloseButtonText>
-              </CloseButton>
+                style={{ marginTop: 20 }}
+              />
             </LoaderContainer>
           )}
-        </ModalContainer>
-      </Overlay>
+        </ModalBottomSheet>
+      </ModalOverlay>
     </Modal>
   );
 };
 
 export default ReportDetailModal;
-
-const Overlay = styled(View)`
-  flex: 1;
-  background-color: rgba(0, 0, 0, 0.6);
-  justify-content: flex-end;
-`;
-
-const ModalContainer = styled(View)`
-  background-color: ${(props) => props.theme.background};
-  padding: 25px;
-  border-top-left-radius: 30px;
-  border-top-right-radius: 30px;
-  max-height: 85%;
-  min-height: 40%;
-`;
-
-const LoaderContainer = styled(View)`
-  align-items: center;
-  justify-content: center;
-  padding: 40px 0;
-`;
 
 const Header = styled(View)`
   flex-direction: row;
@@ -203,24 +180,16 @@ const Header = styled(View)`
   margin-bottom: 15px;
 `;
 
-const CategoryBadge = styled(View)`
-  background-color: ${(props) => props.theme.background};
-  padding: 6px 12px;
-  border-radius: 8px;
-  border-width: 1px;
-  border-color: ${(props) => props.theme.border};
+const StatusWrapper = styled(View)`
+  flex-direction: row;
+  align-items: center;
 `;
 
-const CategoryText = styled(Text)`
-  font-weight: bold;
-  font-size: 12px;
-  color: ${(props) => props.theme.text};
-`;
-
-const StatusBadge = styled(View)`
-  padding: 6px 12px;
-  height: 30px;
-  border-radius: 8px;
+const StatusDot = styled(View)`
+  width: 12px;
+  height: 12px;
+  border-radius: 6px;
+  margin-right: 6px;
 `;
 
 const StatusText = styled(Text)`
@@ -297,12 +266,6 @@ const AdhesionText = styled(Text)`
   color: ${(props) => props.theme.text};
 `;
 
-const InfoRow = styled(View)`
-  flex-direction: row;
-  align-items: center;
-  margin-bottom: 8px;
-`;
-
 const InfoText = styled(Text)`
   margin-left: 10px;
   font-size: 15px;
@@ -329,21 +292,4 @@ const DescriptionText = styled(Text)`
   font-size: 15px;
   line-height: 22px;
   color: ${(props: any) => props.theme.text};
-`;
-
-const CloseButton = styled.TouchableOpacity`
-  background-color: ${(props: any) => props.theme.tint};
-  padding: 15px;
-  border-radius: 12px;
-  align-items: center;
-  margin-bottom: 20px;
-`;
-
-const CloseButtonText = styled(Text)`
-  color: #fff;
-  font-weight: bold;
-  font-size: 16px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: ${(props) => props.theme.text};
 `;

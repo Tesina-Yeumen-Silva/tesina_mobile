@@ -1,4 +1,4 @@
-import { Text, TextInput, View } from "@/components/Themed";
+import { Text, TextInput, View } from "@/components/ui/Themed";
 import { useAuthStore } from "@/store/authStore";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";

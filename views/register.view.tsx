@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, TextInput, Text } from "@/components/Themed";
+import { View, TextInput, Text } from "@/components/ui/Themed";
 import styled, { useTheme } from "styled-components/native";
 import { BackButton } from "@/components/ui/BackButton";
 import {

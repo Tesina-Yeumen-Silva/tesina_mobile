@@ -3,7 +3,7 @@ import * as ImagePicker from "expo-image-picker";
 import React from "react";
 import { Alert } from "react-native";
 import styled from "styled-components/native";
-import { Text, View } from "../Themed";
+import { Text, View } from "../ui/Themed";
 
 interface ImageSelectorProps {
   image: string | null;

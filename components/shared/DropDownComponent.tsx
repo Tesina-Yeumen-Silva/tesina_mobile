@@ -1,6 +1,6 @@
 import { Dropdown } from "react-native-element-dropdown";
 import styled, { useTheme } from "styled-components/native";
-import { View } from "../Themed";
+import { View } from "../ui/Themed";
 import { useEffect, useState } from "react";
 import { categoryController } from "@/controllers/category.controller";
 import { ActivityIndicator } from "react-native";

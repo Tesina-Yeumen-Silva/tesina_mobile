@@ -1,11 +1,13 @@
 import styled, { useTheme } from "styled-components/native";
-import { Text, View } from "@/components/Themed";
+import { Text, View, ModalOverlay, ModalBottomSheet, LoaderContainer } from "@/components/ui/Themed";
 import { useEffect, useState } from "react";
 import { reportsController } from "@/controllers/reports.controller";
 import { ReportHistoryResponse } from "@/models";
 import { ActivityIndicator, FlatList, Modal } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { formatDate } from "@/utils/formatDate";
+import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
 
 interface props {
   reportId: number;
@@ -55,9 +57,7 @@ const ReportHistoryModal = ({ reportId, onClose }: props) => {
         </TimelineColumn>
         <ItemContent>
           <ItemHeader>
-            <StateBadge style={{ backgroundColor: item.state.color }}>
-              <StateBadgeText>{item.state.name}</StateBadgeText>
-            </StateBadge>
+            <Badge text={item.state.name} color={item.state.color} />
             <ItemDate>{formatDate(item.createdAt)}</ItemDate>
           </ItemHeader>
           <ObservationText>{item.observation}</ObservationText>
@@ -72,8 +72,8 @@ const ReportHistoryModal = ({ reportId, onClose }: props) => {
       transparent={true}
       onRequestClose={onClose}
     >
-      <Overlay>
-        <ModalContainer>
+      <ModalOverlay>
+        <ModalBottomSheet style={{ maxHeight: "75%" }}>
           <ModalHeader>
             <ModalTitle>Historial de Estados</ModalTitle>
             <CloseIconButton onPress={onClose}>
@@ -84,12 +84,12 @@ const ReportHistoryModal = ({ reportId, onClose }: props) => {
           {isLoading ? (
             <LoaderContainer>
               <ActivityIndicator size="large" color={theme.tint} />
-              <LoaderText>Cargando historial...</LoaderText>
+              <Text style={{ marginTop: 10, color: theme.text }}>Cargando historial...</Text>
             </LoaderContainer>
           ) : !history || history.length === 0 ? (
             <LoaderContainer>
               <MaterialIcons name="error-outline" size={40} color="red" />
-              <LoaderText>No hay historial disponible.</LoaderText>
+              <Text style={{ marginTop: 10, color: theme.text }}>No hay historial disponible.</Text>
             </LoaderContainer>
           ) : (
             <FlatList
@@ -101,40 +101,16 @@ const ReportHistoryModal = ({ reportId, onClose }: props) => {
             />
           )}
 
-          <CloseButton onPress={onClose}>
-            <CloseButtonText>Cerrar</CloseButtonText>
-          </CloseButton>
-        </ModalContainer>
-      </Overlay>
+          <Button label="Cerrar" variant="close" onPress={onClose} style={{ marginTop: 10 }} />
+        </ModalBottomSheet>
+      </ModalOverlay>
     </Modal>
   );
 };
 
 export default ReportHistoryModal;
 
-const Overlay = styled.View`
-  flex: 1;
-  background-color: rgba(0, 0, 0, 0.6);
-  justify-content: flex-end;
-`;
-const ModalContainer = styled.View`
-  background-color: ${(props) => props.theme.background};
-  padding: 25px;
-  border-top-left-radius: 30px;
-  border-top-right-radius: 30px;
-  max-height: 75%;
-  min-height: 40%;
-`;
-const LoaderContainer = styled.View`
-  align-items: center;
-  justify-content: center;
-  padding: 40px 0;
-`;
-const LoaderText = styled.Text`
-  margin-top: 10px;
-  color: ${(props) => props.theme.text};
-`;
-const ModalHeader = styled.View`
+const ModalHeader = styled(View)`
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
@@ -180,15 +156,6 @@ const ItemHeader = styled.View`
   justify-content: space-between;
   margin-bottom: 6px;
 `;
-const StateBadge = styled.View`
-  padding: 3px 10px;
-  border-radius: 8px;
-`;
-const StateBadgeText = styled.Text`
-  font-size: 12px;
-  font-weight: bold;
-  color: #fff;
-`;
 const ItemDate = styled.Text`
   font-size: 11px;
   color: ${(props) => props.theme.text};
@@ -199,18 +166,4 @@ const ObservationText = styled.Text`
   line-height: 20px;
   color: ${(props) => props.theme.text};
   opacity: 0.8;
-`;
-const CloseButton = styled.TouchableOpacity`
-  background-color: ${(props: any) => props.theme.tint};
-  padding: 15px;
-  border-radius: 12px;
-  align-items: center;
-  margin-top: 10px;
-`;
-const CloseButtonText = styled.Text`
-  font-weight: bold;
-  font-size: 16px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: ${(props) => props.theme.text};
 `;

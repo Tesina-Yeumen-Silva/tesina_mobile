@@ -1,6 +1,6 @@
 import React, { Dispatch, SetStateAction } from 'react';
 import { Modal } from 'react-native';
-import { ReportForm } from '../ReportComponents/ReportForm';
+import { ReportForm } from './ReportForm';
 import styled from 'styled-components/native';
 
 interface ReportModalProps {
