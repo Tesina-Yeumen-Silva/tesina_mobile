@@ -3,8 +3,8 @@ import { Text, View } from "@/components/Themed";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { reportsController } from "@/controllers/reports.controller";
 import { UserReports } from "@/models";
-import { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, FlatList } from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
+import { ActivityIndicator, Alert, FlatList, Platform } from "react-native";
 import { formatDate } from "@/utils/formatDate";
 import ReportDetailModal from "./ReportDetailsModal";
 import { useInfiniteQuery } from "@tanstack/react-query";
@@ -29,11 +29,57 @@ const getCategoryIcon = (
   }
 };
 
+interface ReportCardItemProps {
+  item: UserReports;
+  onPress: (id: number) => void;
+  onPressHistory: (id: number) => void;
+}
+
+const ReportCardItemComponent = ({
+  item,
+  onPress,
+  onPressHistory,
+}: ReportCardItemProps) => {
+  return (
+    <ReportCard onPress={() => onPress(item.id)}>
+      <IconWrapper>
+        <MaterialIcons
+          name={getCategoryIcon(item.categoryName)}
+          size={28}
+          color="#2196F3"
+        />
+      </IconWrapper>
+      <InfoContainer>
+        <CategoryText numberOfLines={1}>{item.categoryName}</CategoryText>
+        <AddressText numberOfLines={1}>{item.address}</AddressText>
+        <DateText>{formatDate(item.createdAt)}</DateText>
+        <HistoryButton onPress={() => onPressHistory(item.id)}>
+          <Ionicons name="time-outline" size={12} color="#2196F3" />
+          <HistoryButtonText>Ver historial</HistoryButtonText>
+        </HistoryButton>
+      </InfoContainer>
+      <StatusBadge badgeColor={item.stateColor}>
+        <StatusText>{item.stateName}</StatusText>
+      </StatusBadge>
+    </ReportCard>
+  );
+};
+
+const ReportCardItem = React.memo(ReportCardItemComponent);
+
 const UserReportsList = () => {
   const [selectedReportId, setSelectedReportId] = useState<number | null>(null);
   const [selectedHistoryId, setSelectedHistoryId] = useState<number | null>(
     null,
   );
+
+  const handlePressDetail = useCallback((id: number) => {
+    setSelectedReportId(id);
+  }, []);
+
+  const handlePressHistory = useCallback((id: number) => {
+    setSelectedHistoryId(id);
+  }, []);
 
   const {
     data,
@@ -72,32 +118,6 @@ const UserReportsList = () => {
     );
   };
 
-  const renderItem = ({ item }: { item: UserReports }) => {
-    return (
-      <ReportCard onPress={() => setSelectedReportId(item.id)}>
-        <IconWrapper>
-          <MaterialIcons
-            name={getCategoryIcon(item.categoryName)}
-            size={28}
-            color="#2196F3"
-          />
-        </IconWrapper>
-        <InfoContainer>
-          <CategoryText numberOfLines={1}>{item.categoryName}</CategoryText>
-          <AddressText numberOfLines={1}>{item.address}</AddressText>
-          <DateText>{formatDate(item.createdAt)}</DateText>
-          <HistoryButton onPress={() => setSelectedHistoryId(item.id)}>
-            <Ionicons name="time-outline" size={12} color="#2196F3" />
-            <HistoryButtonText>Ver historial</HistoryButtonText>
-          </HistoryButton>
-        </InfoContainer>
-        <StatusBadge badgeColor={item.stateColor}>
-          <StatusText>{item.stateName}</StatusText>
-        </StatusBadge>
-      </ReportCard>
-    );
-  };
-
   if (isLoading) {
     return (
       <CenterContainer>
@@ -126,10 +146,20 @@ const UserReportsList = () => {
       <FlatList
         data={reports}
         keyExtractor={(item) => item.id.toString()}
-        renderItem={renderItem}
+        renderItem={({ item }) => (
+          <ReportCardItem
+            item={item}
+            onPress={handlePressDetail}
+            onPressHistory={handlePressHistory}
+          />
+        )}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
         ListFooterComponent={renderFooter}
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
+        windowSize={5}
+        removeClippedSubviews={Platform.OS === "android"}
       />
 
       {selectedReportId !== null && (
