@@ -1,6 +1,5 @@
 import { Text } from "@/components/Themed";
 import { MaterialIcons } from "@expo/vector-icons";
-import * as Location from "expo-location";
 import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -15,17 +14,13 @@ import {
 } from "react-native";
 import MapView, { Region, UrlTile } from "react-native-maps";
 import styled from "styled-components/native";
+import { locationController } from "@/controllers/location.controller";
+import { PlaceResult } from "@/models";
+
 interface MapPickerProps {
   visible: boolean;
   onClose: () => void;
   onConfirm: (coords: { latitude: number; longitude: number }) => void;
-}
-
-interface PlaceResult {
-  place_id: number;
-  display_name: string;
-  lat: string;
-  lon: string;
 }
 
 const MapPickerModal = ({ visible, onClose, onConfirm }: MapPickerProps) => {
@@ -69,16 +64,7 @@ const MapPickerModal = ({ visible, onClose, onConfirm }: MapPickerProps) => {
 
       setIsSearching(true);
       try {
-        const finalQuery = debouncedQuery.toLowerCase().includes("mendoza")
-          ? debouncedQuery
-          : `${debouncedQuery}, Mendoza`;
-
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-            finalQuery,
-          )}&countrycodes=ar&limit=5`,
-        );
-        const data = await response.json();
+        const data = await locationController.searchAddressAction(debouncedQuery);
         setSearchResults(data);
       } catch (error) {
         console.log("Error buscando dirección:", error);
@@ -93,16 +79,12 @@ const MapPickerModal = ({ visible, onClose, onConfirm }: MapPickerProps) => {
   const getUserLocation = async () => {
     setLoading(true);
     try {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") return;
-
-      let location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      });
+      const coords = await locationController.getCurrentLocationAction();
+      if (!coords) return;
 
       const userRegion = {
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
+        latitude: coords.latitude,
+        longitude: coords.longitude,
         latitudeDelta: 0.005,
         longitudeDelta: 0.005,
       };

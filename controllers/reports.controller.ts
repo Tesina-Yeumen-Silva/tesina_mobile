@@ -8,6 +8,10 @@ import {
   ReportMaker,
 } from "@/models";
 import { ActionResult } from "./auth.controller";
+import * as Network from "expo-network";
+import { File } from "expo-file-system";
+import { documentDirectory } from "expo-file-system/legacy";
+import { saveOfflineReport } from "@/services/offlineStorage";
 
 export const reportsController = {
   fetchMapMakersAction: async (region: Region): Promise<ReportMaker[]> => {
@@ -28,7 +32,7 @@ export const reportsController = {
     }
   },
 
-  createReportAction: async (report: CreateReport): Promise<ActionResult> => {
+  createReportAction: async (report: CreateReport): Promise<ActionResult<{ offline: boolean }>> => {
     if (!report.address) {
       return { ok: false, error: "La ubicación del incidente es obligatoria." };
     }
@@ -40,12 +44,36 @@ export const reportsController = {
     }
 
     try {
-      await reportsService.createReport(report);
-      return { ok: true };
+      const networkState = await Network.getNetworkStateAsync();
+      if (networkState.isConnected && networkState.isInternetReachable) {
+        await reportsService.createReport(report);
+        return { ok: true, data: { offline: false } };
+      } else {
+        const filename = report.image.split("/").pop() || "photo.jpg";
+        const permanentImageUri = `${documentDirectory}offline_${Date.now()}_${filename}`;
+
+        const originalFile = new File(report.image);
+        const destinationFile = new File(permanentImageUri);
+
+        await originalFile.copy(destinationFile);
+
+        const reportData = {
+          address: report.address,
+          latitude: report.latitude,
+          longitude: report.longitude,
+          description: report.description,
+          isAnonymous: report.isAnonymous,
+          categoryId: report.categoryId,
+        };
+
+        saveOfflineReport(reportData, permanentImageUri);
+        return { ok: true, data: { offline: true } };
+      }
     } catch (error: any) {
+      console.log("Error creando reporte (Online/Offline):", error);
       return {
         ok: false,
-        error: error.response?.data?.message || "Ocurrió un error al subir el reporte.",
+        error: error.response?.data?.message || "Ocurrió un error al procesar el reporte.",
       };
     }
   },
@@ -83,4 +111,5 @@ export const reportsController = {
       return null;
     }
   },
+
 };

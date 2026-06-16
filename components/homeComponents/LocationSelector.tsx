@@ -1,5 +1,5 @@
 import { MaterialIcons } from "@expo/vector-icons";
-import * as Location from "expo-location";
+import { locationController } from "@/controllers/location.controller";
 import { useState } from "react";
 import { ActivityIndicator, Alert } from "react-native";
 import styled from "styled-components/native";
@@ -22,37 +22,31 @@ const LocationSelector = ({
   const handleGps = async () => {
     setLoading(true);
     try {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
+      const hasPermission = await locationController.requestPermissionsAction();
+      if (!hasPermission) {
         Alert.alert(
           "Permiso denegado",
           "Necesitamos GPS para ubicar el incidente.",
         );
         return;
       }
-      let location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      });
+      const coords = await locationController.getCurrentLocationAction();
+      if (!coords) {
+        Alert.alert("Error", "No se pudo conectar con el satélite GPS.");
+        return;
+      }
 
       setCoords({
-        lat: location.coords.latitude,
-        lng: location.coords.longitude,
+        lat: coords.latitude,
+        lng: coords.longitude,
       });
 
       try {
-        let reverse = await Location.reverseGeocodeAsync({
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
-        });
-
-        if (reverse.length > 0) {
-          const addr = reverse[0];
-          setLocationName(
-            `${addr.street || ""} ${addr.name || ""}, ${addr.subregion || ""}`.trim(),
-          );
-        } else {
-          setLocationName("Ubicación de GPS fijada");
-        }
+        const address = await locationController.reverseGeocodeAction(
+          coords.latitude,
+          coords.longitude,
+        );
+        setLocationName(address);
       } catch (geocodeError) {
         console.log("Modo Offline: No se pudo traducir la dirección a texto.");
         setLocationName("Ubicación guardada (Sin conexión)");

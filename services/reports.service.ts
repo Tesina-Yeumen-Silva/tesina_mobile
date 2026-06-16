@@ -6,6 +6,7 @@ import {
   ReportDetails,
   ReportHistoryResponse,
   ReportMaker,
+  PlaceResult,
 } from "../models";
 
 export const reportsService = {
@@ -70,4 +71,6 @@ export const reportsService = {
     const response = await api.get(`/reports/${reportId}/history`);
     return response.data.data;
   },
+
 };
+

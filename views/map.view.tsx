@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import MapView, { Region, Marker, UrlTile } from "react-native-maps";
 import styled from "styled-components/native";
 import ReportModal from "@/components/homeComponents/ReportModal";
-import * as Location from "expo-location";
+import { locationController } from "@/controllers/location.controller";
 import { ReportMaker } from "@/models";
 import { reportsController } from "@/controllers/reports.controller";
 import ReportDetailModal from "@/components/homeComponents/ReportDetailsModal";
@@ -16,9 +16,6 @@ const MapViewHome = () => {
   const [isReportDetailVisible, setIsReportDetailVisible] =
     useState<boolean>(false);
   const [selectedReportId, setSelectedReportId] = useState<number | null>(null);
-  const [location, setLocation] = useState<Location.LocationObject | null>(
-    null,
-  );
   const [markers, setMarkers] = useState<ReportMaker[]>([]);
   const mapRef = useRef<MapView | null>(null);
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
@@ -29,10 +26,7 @@ const MapViewHome = () => {
 
   useEffect(() => {
     (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") return;
-      let loc = await Location.getCurrentPositionAsync({});
-      setLocation(loc);
+      await locationController.requestPermissionsAction();
     })();
   }, []);
 
@@ -55,12 +49,12 @@ const MapViewHome = () => {
   };
 
   const centerToUser = async () => {
-    let loc = await Location.getLastKnownPositionAsync();
-    if (mapRef.current && loc) {
+    const coords = await locationController.getLastKnownLocationAction() || await locationController.getCurrentLocationAction();
+    if (mapRef.current && coords) {
       mapRef.current.animateToRegion(
         {
-          latitude: loc.coords.latitude,
-          longitude: loc.coords.longitude,
+          latitude: coords.latitude,
+          longitude: coords.longitude,
           latitudeDelta: 0.005,
           longitudeDelta: 0.005,
         },

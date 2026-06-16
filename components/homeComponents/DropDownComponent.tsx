@@ -2,9 +2,8 @@ import { Dropdown } from "react-native-element-dropdown";
 import styled, { useTheme } from "styled-components/native";
 import { View } from "../Themed";
 import { useEffect, useState } from "react";
-import { categoryService } from "@/services/category.service";
+import { categoryController } from "@/controllers/category.controller";
 import { ActivityIndicator } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface DropdownComponentProps {
   selectedCategory: string | null;
@@ -29,28 +28,15 @@ const DropdownComponent = ({
       try {
         setIsLoading(true);
 
-        const cachedCategories =
-          await AsyncStorage.getItem("@report_categories");
-        if (cachedCategories) {
-          setData(JSON.parse(cachedCategories));
-          setIsLoading(false);
-        }
-
-        const categoriesFromDB = await categoryService.getCategories();
+        const categoriesFromDB = await categoryController.getCategoriesAction();
         const formattedData = categoriesFromDB.map((cat: any) => ({
           label: cat.name,
           value: String(cat.id),
         }));
 
         setData(formattedData);
-        await AsyncStorage.setItem(
-          "@report_categories",
-          JSON.stringify(formattedData),
-        );
       } catch (error) {
-        console.log(
-          "Aviso: No se pudieron traer categorías nuevas, usando la caché.",
-        );
+        console.log("Error al cargar categorías:", error);
       } finally {
         setIsLoading(false);
       }

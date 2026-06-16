@@ -8,8 +8,8 @@ import {
   Switch,
   Text,
 } from "react-native";
-import * as Location from "expo-location";
 import { reportsController } from "@/controllers/reports.controller";
+import { locationController } from "@/controllers/location.controller";
 import { CreateReport } from "@/models";
 import styled from "styled-components/native";
 import { TextInput, View } from "../Themed";
@@ -17,10 +17,6 @@ import DropdownComponent from "../homeComponents/DropDownComponent";
 import MapPickerModal from "../homeComponents/MapPickerModal";
 import ImageSelector from "../homeComponents/ImageSelector";
 import LocationSelector from "../homeComponents/LocationSelector";
-import * as Network from "expo-network";
-import { File } from "expo-file-system";
-import { documentDirectory } from "expo-file-system/legacy";
-import { saveOfflineReport } from "@/services/offlineStorage";
 
 interface ReportFormProps {
   onSuccess?: () => void;
@@ -58,14 +54,11 @@ export const ReportForm = ({
     });
 
     try {
-      const reverse = await Location.reverseGeocodeAsync(coords);
-      if (reverse.length > 0) {
-        const addr = reverse[0];
-        const street = addr.street || addr.name || "Ubicación seleccionada";
-        const subregion = addr.subregion ? `, ${addr.subregion}` : "";
-
-        setSelectedLocation(`${street}${subregion}`);
-      }
+      const address = await locationController.reverseGeocodeAction(
+        coords.latitude,
+        coords.longitude,
+      );
+      setSelectedLocation(address);
     } catch (error) {
       console.log("Error al obtener la dirección:", error);
       setSelectedLocation("Ubicación seleccionada en el mapa");
@@ -97,57 +90,27 @@ export const ReportForm = ({
     try {
       setIsLoading(true);
 
-      const networkState = await Network.getNetworkStateAsync();
-      if (networkState.isConnected && networkState.isInternetReachable) {
-        const payload: CreateReport = {
-          address: selectedLocation,
-          latitude: selectedCoords.lat,
-          longitude: selectedCoords.lng,
-          description: description,
-          isAnonymous: isAnonymous,
-          categoryId: Number(selectedCategory),
-          image: selectedImage,
-        };
+      const payload: CreateReport = {
+        address: selectedLocation,
+        latitude: selectedCoords.lat,
+        longitude: selectedCoords.lng,
+        description: description,
+        isAnonymous: isAnonymous,
+        categoryId: Number(selectedCategory),
+        image: selectedImage,
+      };
 
-        const result = await reportsController.createReportAction(payload);
+      const result = await reportsController.createReportAction(payload);
 
-        if (result.ok) {
-          Alert.alert("¡Gracias!", "Tu reporte ha sido enviado exitosamente.");
-
-          setSelectedImage(null);
-          setSelectedLocation(null);
-          setSelectedCoords(null);
-          setselectedCategory(null);
-          setDescription("");
-
-          if (onSuccess) onSuccess();
+      if (result.ok) {
+        if (result.data?.offline) {
+          Alert.alert(
+            "Reporte Guardado 💾",
+            "No tienes conexión a internet. Tu reporte ha sido guardado de forma segura y se enviará automáticamente cuando recuperes la señal.",
+          );
         } else {
-          Alert.alert("Error", result.error || "Hubo un problema al enviar el reporte. Intenta de nuevo.");
+          Alert.alert("¡Gracias!", "Tu reporte ha sido enviado exitosamente.");
         }
-      } else {
-        const filename = selectedImage.split("/").pop();
-        const permanentImageUri = `${documentDirectory}offline_${Date.now()}_${filename}`;
-
-        const originalFile = new File(selectedImage);
-        const destinationFile = new File(permanentImageUri);
-
-        await originalFile.copy(destinationFile);
-
-        const reportData = {
-          address: selectedLocation,
-          latitude: selectedCoords.lat,
-          longitude: selectedCoords.lng,
-          description: description,
-          isAnonymous: isAnonymous,
-          categoryId: Number(selectedCategory),
-        };
-
-        saveOfflineReport(reportData, permanentImageUri);
-
-        Alert.alert(
-          "Reporte Guardado 💾",
-          "No tienes conexión a internet. Tu reporte ha sido guardado de forma segura y se enviará automáticamente cuando recuperes la señal.",
-        );
 
         setSelectedImage(null);
         setSelectedLocation(null);
@@ -156,6 +119,8 @@ export const ReportForm = ({
         setDescription("");
 
         if (onSuccess) onSuccess();
+      } else {
+        Alert.alert("Error", result.error || "Hubo un problema al enviar el reporte. Intenta de nuevo.");
       }
     } catch (error: any) {
       console.log("Error enviando reporte:", error);
