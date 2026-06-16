@@ -53,14 +53,21 @@ const RegisterView = () => {
       return;
     }
 
-    const result = await authController.registerAction({ email, name, password });
+    const result = await authController.registerAction({
+      email,
+      name,
+      password,
+    });
     if (result.ok && result.data) {
       setSignupToken(result.data);
       setCountdown(60);
       setStep(2);
       Alert.alert("Éxito", "Te hemos enviado un código a tu correo.");
     } else {
-      Alert.alert("Error en el registro", result.error || "Hubo un problema al crear la cuenta");
+      Alert.alert(
+        "Error en el registro",
+        result.error || "Hubo un problema al crear la cuenta",
+      );
     }
   };
 
@@ -70,17 +77,28 @@ const RegisterView = () => {
       return;
     }
 
-    const result = await authController.confirmRegisterAction(email, code, signupToken);
+    const result = await authController.confirmRegisterAction(
+      email,
+      code,
+      signupToken,
+    );
     if (result.ok) {
       Alert.alert("Correcto", "Usted fue registrado con éxito");
       router.replace("/");
     } else {
-      Alert.alert("Error en la verificación", result.error || "Hubo un problema al verificar el código");
+      Alert.alert(
+        "Error en la verificación",
+        result.error || "Hubo un problema al verificar el código",
+      );
     }
   };
 
   const handleResendCode = async () => {
-    const result = await authController.registerAction({ email, name, password });
+    const result = await authController.registerAction({
+      email,
+      name,
+      password,
+    });
     if (result.ok && result.data) {
       setSignupToken(result.data);
       setCountdown(60);
@@ -185,12 +203,20 @@ const RegisterView = () => {
                     <Line />
                   </DividerContainer>
 
-                  <GoogleButton onPress={startGoogleAuth} disabled={isGoogleLoading}>
+                  <GoogleButton
+                    onPress={startGoogleAuth}
+                    disabled={isGoogleLoading}
+                  >
                     {isGoogleLoading ? (
                       <ActivityIndicator color={theme.text} />
                     ) : (
                       <>
-                        <AntDesign name="google" size={20} color={theme.text} style={{ marginRight: 10 }} />
+                        <AntDesign
+                          name="google"
+                          size={20}
+                          color={theme.text}
+                          style={{ marginRight: 10 }}
+                        />
                         <GoogleButtonText>Google</GoogleButtonText>
                       </>
                     )}
@@ -200,8 +226,16 @@ const RegisterView = () => {
 
               {step === 2 && (
                 <>
-                  <Text style={{ marginBottom: 15, textAlign: "center", color: theme.text, opacity: 0.8 }}>
-                    Ingresa el código de 6 dígitos enviado a tu correo electrónico: {email}
+                  <Text
+                    style={{
+                      marginBottom: 15,
+                      textAlign: "center",
+                      color: theme.text,
+                      opacity: 0.8,
+                    }}
+                  >
+                    Ingresa el código de 6 dígitos enviado a tu correo
+                    electrónico: {email}
                   </Text>
 
                   <InputEmail
@@ -355,7 +389,6 @@ export const ResendTextActive = styled(Text)`
   color: ${(props: any) => props.theme.tint};
   font-weight: bold;
   text-align: center;
-};
 `;
 
 const BackButtonContainer = styled.View`
