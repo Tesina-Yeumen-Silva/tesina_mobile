@@ -77,7 +77,6 @@ export const locationService = {
         });
         if (reverse && reverse.length > 0) {
           const addr = reverse[0];
-          console.log("Reverse geocode address object (native):", addr);
           const streetName = addr.street || addr.name || "";
           const streetNumber = addr.streetNumber ? ` ${addr.streetNumber}` : "";
 
