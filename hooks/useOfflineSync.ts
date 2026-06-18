@@ -31,6 +31,7 @@ export const useOfflineSync = () => {
 
           if (
             finalAddress === "Ubicación seleccionada en el mapa" ||
+            finalAddress === "Ubicación guardada (Sin conexión)" ||
             !finalAddress
           ) {
             console.log("Traduciendo coordenadas a texto antes de enviar...");
@@ -42,8 +43,18 @@ export const useOfflineSync = () => {
 
               if (reverse.length > 0) {
                 const addr = reverse[0];
-                finalAddress =
-                  `${addr.street || ""} ${addr.name || ""}, ${addr.subregion || ""}`.trim();
+                const streetName = addr.street || addr.name || "";
+                const streetNumber = addr.streetNumber ? ` ${addr.streetNumber}` : "";
+                
+                let street = streetName;
+                if (streetName && addr.streetNumber && !streetName.includes(addr.streetNumber)) {
+                  street = `${streetName}${streetNumber}`;
+                } else if (!streetName) {
+                  street = "Ubicación seleccionada";
+                }
+
+                const subregion = addr.subregion ? `, ${addr.subregion}` : "";
+                finalAddress = `${street}${subregion}`;
               }
             } catch (geocodeError) {
               console.log(

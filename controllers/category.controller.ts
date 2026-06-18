@@ -7,7 +7,10 @@ export const categoryController = {
     try {
       const cached = await AsyncStorage.getItem("@report_categories");
       if (cached) {
-        return JSON.parse(cached);
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
       }
     } catch (e) {
       console.log("Error leyendo caché de categorías:", e);
@@ -16,13 +19,19 @@ export const categoryController = {
     try {
       const categories = await categoryService.getCategories();
       try {
-        await AsyncStorage.setItem("@report_categories", JSON.stringify(categories));
+        await AsyncStorage.setItem(
+          "@report_categories",
+          JSON.stringify(categories),
+        );
       } catch (e) {
         console.log("Error guardando caché de categorías:", e);
       }
       return categories;
     } catch (error) {
-      console.log("Error al obtener categorías de la API, retornando vacío:", error);
+      console.log(
+        "Error al obtener categorías de la API, retornando vacío:",
+        error,
+      );
       return [];
     }
   },

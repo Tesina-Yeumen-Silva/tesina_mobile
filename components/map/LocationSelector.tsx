@@ -1,8 +1,9 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { locationController } from "@/controllers/location.controller";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ActivityIndicator, Alert } from "react-native";
 import styled from "styled-components/native";
+import * as Network from "expo-network";
 
 interface LocationSelectorProps {
   locationName: string | null;
@@ -18,6 +19,19 @@ const LocationSelector = ({
   onOpenMapPicker,
 }: LocationSelectorProps) => {
   const [loading, setLoading] = useState(false);
+  const [isOnline, setIsOnline] = useState(true);
+
+  useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        const state = await Network.getNetworkStateAsync();
+        setIsOnline(!!(state.isConnected && state.isInternetReachable));
+      } catch (error) {
+        setIsOnline(true);
+      }
+    };
+    checkConnection();
+  }, []);
 
   const handleGps = async () => {
     setLoading(true);
@@ -57,25 +71,27 @@ const LocationSelector = ({
       setLoading(false);
     }
   };
+
   return (
     <Container>
       <MainBar>
-        <OptionButton onPress={handleGps} disabled={loading}>
-          {loading ? (
-            <ActivityIndicator size="small" color="#2196f3" />
-          ) : (
-            <>
-              <MaterialIcons name="gps-fixed" size={22} color="#2196f3" />
-              <OptionText>GPS</OptionText>
-            </>
-          )}
-        </OptionButton>
-        <Divider />
-
-        <OptionButton onPress={onOpenMapPicker}>
-          <MaterialIcons name="map" size={22} color="#2196f3" />
-          <OptionText>Mapa</OptionText>
-        </OptionButton>
+        {isOnline ? (
+          <OptionButton onPress={onOpenMapPicker}>
+            <MaterialIcons name="map" size={22} color="#2196f3" />
+            <OptionText>Seleccionar en el Mapa</OptionText>
+          </OptionButton>
+        ) : (
+          <OptionButton onPress={handleGps} disabled={loading}>
+            {loading ? (
+              <ActivityIndicator size="small" color="#2196f3" />
+            ) : (
+              <>
+                <MaterialIcons name="gps-fixed" size={22} color="#2196f3" />
+                <OptionText>Usar mis Coordenadas (Sin Conexión)</OptionText>
+              </>
+            )}
+          </OptionButton>
+        )}
       </MainBar>
 
       {locationName && (
@@ -112,14 +128,6 @@ const OptionButton = styled.TouchableOpacity`
   align-items: center;
   justify-content: center;
   padding: 10px;
-`;
-
-const Divider = styled.View`
-  width: 1px;
-  height: 60%;
-  background-color: #2196f3;
-  align-self: center;
-  opacity: 0.3;
 `;
 
 const OptionText = styled.Text`

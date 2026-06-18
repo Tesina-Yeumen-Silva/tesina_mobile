@@ -10,6 +10,7 @@ import ReportDetailModal from "./ReportDetailsModal";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import ReportHistoryModal from "./ReportHistoryModal";
 import { Badge } from "@/components/ui/Badge";
+import { useFocusEffect } from "expo-router";
 
 const getCategoryIcon = (
   categoryName: string,
@@ -88,6 +89,8 @@ const UserReportsList = () => {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    refetch,
+    isFetching,
   } = useInfiniteQuery({
     queryKey: ["userReports"],
     queryFn: async ({ pageParam = 1 }) => {
@@ -99,6 +102,12 @@ const UserReportsList = () => {
       return lastPage.meta.hasMore ? lastPage.meta.page + 1 : undefined;
     },
   });
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
 
   const reports = data?.pages.flatMap((page) => page.data) || [];
 
@@ -155,6 +164,8 @@ const UserReportsList = () => {
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
         ListFooterComponent={renderFooter}
+        refreshing={isFetching && !isFetchingNextPage}
+        onRefresh={refetch}
         initialNumToRender={10}
         maxToRenderPerBatch={10}
         windowSize={5}

@@ -121,6 +121,8 @@ const MapPickerModal = ({ visible, onClose, onConfirm }: MapPickerProps) => {
           style={StyleSheet.absoluteFillObject}
           mapType={Platform.OS === "android" ? "none" : "standard"}
           initialRegion={region}
+          showsUserLocation={true}
+          showsMyLocationButton={true}
           onTouchStart={() => {
             Keyboard.dismiss();
             setSearchResults([]);
@@ -214,6 +216,7 @@ const Header = styled.View`
 
 const HeaderText = styled(Text)`
   background-color: white;
+  color: black;
   padding: 10px 15px;
   border-radius: 20px;
   font-weight: bold;

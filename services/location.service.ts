@@ -1,5 +1,6 @@
 import * as Location from "expo-location";
 import { PlaceResult } from "../models";
+import * as Network from "expo-network";
 
 export const locationService = {
   requestPermissions: async (): Promise<boolean> => {
@@ -12,8 +13,19 @@ export const locationService = {
     }
   },
 
-  getCurrentLocation: async (): Promise<{ latitude: number; longitude: number } | null> => {
+  getCurrentLocation: async (): Promise<{
+    latitude: number;
+    longitude: number;
+  } | null> => {
     try {
+      const lastKnown = await Location.getLastKnownPositionAsync();
+      if (lastKnown) {
+        return {
+          latitude: lastKnown.coords.latitude,
+          longitude: lastKnown.coords.longitude,
+        };
+      }
+
       const location = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.Balanced,
       });
@@ -27,7 +39,10 @@ export const locationService = {
     }
   },
 
-  getLastKnownLocation: async (): Promise<{ latitude: number; longitude: number } | null> => {
+  getLastKnownLocation: async (): Promise<{
+    latitude: number;
+    longitude: number;
+  } | null> => {
     try {
       const location = await Location.getLastKnownPositionAsync();
       if (!location) return null;
@@ -41,19 +56,92 @@ export const locationService = {
     }
   },
 
-  reverseGeocode: async (latitude: number, longitude: number): Promise<string> => {
+  reverseGeocode: async (
+    latitude: number,
+    longitude: number,
+  ): Promise<string> => {
     try {
-      const reverse = await Location.reverseGeocodeAsync({ latitude, longitude });
-      if (reverse.length > 0) {
-        const addr = reverse[0];
-        const street = addr.street || addr.name || "Ubicación seleccionada";
-        const subregion = addr.subregion ? `, ${addr.subregion}` : "";
-        return `${street}${subregion}`;
+      try {
+        const network = await Network.getNetworkStateAsync();
+        if (!network.isConnected || !network.isInternetReachable) {
+          return "Ubicación guardada (Sin conexión)";
+        }
+      } catch (netError) {
+        console.warn("Error checking network in reverseGeocode:", netError);
       }
-      return "Ubicación seleccionada en el mapa";
+
+      try {
+        const reverse = await Location.reverseGeocodeAsync({
+          latitude,
+          longitude,
+        });
+        if (reverse && reverse.length > 0) {
+          const addr = reverse[0];
+          console.log("Reverse geocode address object (native):", addr);
+          const streetName = addr.street || addr.name || "";
+          const streetNumber = addr.streetNumber ? ` ${addr.streetNumber}` : "";
+
+          let street = streetName;
+          if (
+            streetName &&
+            addr.streetNumber &&
+            !streetName.includes(addr.streetNumber)
+          ) {
+            street = `${streetName}${streetNumber}`;
+          } else if (!streetName) {
+            street = "Ubicación seleccionada";
+          }
+
+          const subregion = addr.subregion ? `, ${addr.subregion}` : "";
+          return `${street}${subregion}`;
+        }
+      } catch (nativeError) {
+        console.warn(
+          "Native reverseGeocode failed or timed out. Falling back to Nominatim API:",
+          nativeError,
+        );
+      }
+
+      try {
+        const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`;
+        const response = await fetch(url, {
+          headers: {
+            "User-Agent": "MendozaReportaMobileApp",
+          },
+        });
+        const data = await response.json();
+        if (data && data.address) {
+          const road =
+            data.address.road ||
+            data.address.pedestrian ||
+            data.address.suburb ||
+            "";
+          const houseNumber = data.address.house_number
+            ? ` ${data.address.house_number}`
+            : "";
+          const street = road
+            ? `${road}${houseNumber}`
+            : "Ubicación seleccionada";
+          const city =
+            data.address.city ||
+            data.address.town ||
+            data.address.village ||
+            data.address.subregion ||
+            "";
+          const subregion = city ? `, ${city}` : "";
+          return `${street}${subregion}`;
+        }
+      } catch (fetchError) {
+        console.warn(
+          "Nominatim reverseGeocode failed (likely offline):",
+          fetchError,
+        );
+      }
+
+      return "Ubicación guardada (Sin conexión)";
     } catch (error) {
       console.error("Error in reverseGeocode:", error);
-      return "Ubicación seleccionada en el mapa";
+      return "Ubicación guardada (Sin conexión)";
     }
   },
 

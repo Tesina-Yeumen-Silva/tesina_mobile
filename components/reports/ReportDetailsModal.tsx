@@ -81,16 +81,20 @@ const ReportDetailModal = ({ reportId, onClose }: Props) => {
           ) : reportData ? (
             <ScrollView showsVerticalScrollIndicator={false}>
               <Header>
-                <Badge
-                  text={reportData.category.toUpperCase()}
-                  color="transparent"
-                  style={{ borderWidth: 1, borderColor: theme.border }}
-                />
-                <StatusWrapper>
-                  <StatusDot style={{ backgroundColor: reportData.statusColor }} />
-                  <StatusText>{reportData.status}</StatusText>
-                </StatusWrapper>
-                <StatusText>{formatDate(reportData.updatedState)}</StatusText>
+                <CategoryBadgeWrapper>
+                  <Badge
+                    text={reportData.category.toUpperCase()}
+                    color="transparent"
+                    style={{ borderWidth: 1, borderColor: theme.border }}
+                  />
+                </CategoryBadgeWrapper>
+                <MetaInfoWrapper>
+                  <StatusWrapper>
+                    <StatusDot style={{ backgroundColor: reportData.statusColor }} />
+                    <StatusText>{reportData.status}</StatusText>
+                  </StatusWrapper>
+                  <DateText>{formatDate(reportData.updatedState)}</DateText>
+                </MetaInfoWrapper>
               </Header>
               {reportData.imageUrl && (
                 <ImageContainer>
@@ -104,7 +108,11 @@ const ReportDetailModal = ({ reportId, onClose }: Props) => {
                     />
                   ) : (
                     <ShowImageButton onPress={() => setIsImageVisible(true)}>
-                      <Ionicons name="image-outline" size={24} color={theme.text} />
+                      <Ionicons
+                        name="image-outline"
+                        size={24}
+                        color={theme.background === "#000" ? "#000000" : "#ffffff"}
+                      />
                       <ShowImageText>Ver foto del reporte</ShowImageText>
                     </ShowImageButton>
                   )}
@@ -176,8 +184,19 @@ export default ReportDetailModal;
 const Header = styled(View)`
   flex-direction: row;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  width: 100%;
+`;
+
+const CategoryBadgeWrapper = styled(View)`
+  flex: 1.3;
+  margin-right: 12px;
+`;
+
+const MetaInfoWrapper = styled(View)`
+  flex: 0.7;
+  align-items: flex-end;
 `;
 
 const StatusWrapper = styled(View)`
@@ -196,6 +215,13 @@ const StatusText = styled(Text)`
   font-weight: bold;
   font-size: 12px;
   color: ${(props) => props.theme.text};
+`;
+
+const DateText = styled(Text)`
+  font-size: 11px;
+  color: ${(props) => props.theme.text};
+  opacity: 0.6;
+  margin-top: 4px;
 `;
 
 const ImageContainer = styled(View)`
@@ -223,11 +249,10 @@ const ShowImageButton = styled.TouchableOpacity`
 `;
 
 const ShowImageText = styled(Text)`
-  color: #ffffff;
   font-weight: bold;
   font-size: 16px;
   margin-left: 10px;
-  color: ${(props) => props.theme.text};
+  color: ${(props) => (props.theme.background === "#000" ? "#000000" : "#ffffff")};
 `;
 
 const ReportImage = styled(Image)`

@@ -39,6 +39,7 @@ const StyledButton = styled.TouchableOpacity<{ variant: string }>`
   opacity: ${(props) => (props.disabled ? 0.6 : 1)};
   
   ${(props) => {
+    const isDark = props.theme.background === "#000" || props.theme.background === "black";
     switch (props.variant) {
       case "danger":
         return `
@@ -47,7 +48,7 @@ const StyledButton = styled.TouchableOpacity<{ variant: string }>`
         `;
       case "close":
         return `
-          background-color: ${props.theme.tint || "#007aff"};
+          background-color: ${isDark ? "#2c2c2e" : "#e9e9eb"};
           padding: 15px;
           width: 100%;
         `;
@@ -70,6 +71,7 @@ const ButtonText = styled.Text<{ variant: string }>`
   font-weight: bold;
   
   ${(props) => {
+    const isDark = props.theme.background === "#000" || props.theme.background === "black";
     switch (props.variant) {
       case "link":
         return `
@@ -79,7 +81,7 @@ const ButtonText = styled.Text<{ variant: string }>`
         `;
       case "close":
         return `
-          color: #ffffff;
+          color: ${isDark ? "#ffffff" : "#000000"};
           font-size: 16px;
           text-transform: uppercase;
           letter-spacing: 1px;
