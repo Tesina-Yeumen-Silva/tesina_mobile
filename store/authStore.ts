@@ -1,13 +1,13 @@
 import { create } from "zustand";
-import { User, LoginRequest, RegisterRequest } from "@/types/auth.types";
-import { loginLocal, logoutBackend, registerLocal, confirmRegister } from "@/api/auth.api";
+import { User, LoginRequest, RegisterRequest, AuthResponse } from "@/models";
+import { authService } from "@/services/auth.service";
 import {
   saveToken,
   clearTokens,
   getAccessToken,
   getRefreshToken,
   saveRefreshToken,
-} from "@/utils/secureStorage";
+} from "@/services/secureStorage";
 
 interface AuthState {
   user: User | null;
@@ -18,6 +18,7 @@ interface AuthState {
   checkSession: () => Promise<void>;
   register: (userData: RegisterRequest) => Promise<string>;
   confirmRegister: (email: string, code: string, signupToken: string) => Promise<void>;
+  loginWithTokens: (token: string, refreshToken: string, user: User) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -28,7 +29,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (credentials) => {
     set({ isLoading: true });
     try {
-      const data = await loginLocal(credentials);
+      const data = await authService.loginLocal(credentials);
 
       await saveToken(data.token);
       await saveRefreshToken(data.refreshToken);
@@ -48,7 +49,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const refreshToken = await getRefreshToken();
 
       if (refreshToken) {
-        await logoutBackend(refreshToken);
+        await authService.logoutBackend(refreshToken);
       }
     } catch (error) {
       console.log("Error en el servidor al desloguear:", error);
@@ -74,7 +75,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   register: async (userData: RegisterRequest) => {
     set({ isLoading: true });
     try {
-      const data = await registerLocal(userData);
+      const data = await authService.registerLocal(userData);
       set({ isLoading: false });
       return data.signupToken;
     } catch (error) {
@@ -85,13 +86,28 @@ export const useAuthStore = create<AuthState>((set) => ({
   confirmRegister: async (email: string, code: string, signupToken: string) => {
     set({ isLoading: true });
     try {
-      const data = await confirmRegister({ email, code, signupToken });
+      const data = await authService.confirmRegister({ email, code, signupToken });
 
       await saveToken(data.token);
       await saveRefreshToken(data.refreshToken);
 
       set({
         user: data.user,
+        isLoggedIn: true,
+        isLoading: false,
+      });
+    } catch (error) {
+      set({ isLoading: false });
+      throw error;
+    }
+  },
+  loginWithTokens: async (token, refreshToken, user) => {
+    set({ isLoading: true });
+    try {
+      await saveToken(token);
+      await saveRefreshToken(refreshToken);
+      set({
+        user,
         isLoggedIn: true,
         isLoading: false,
       });

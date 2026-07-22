@@ -5,8 +5,8 @@ import { File } from "expo-file-system";
 import {
   getPendingReports,
   deletePendingReport,
-} from "../utils/offlineStorage";
-import { createReport } from "../api/reports.api";
+} from "@/services/offlineStorage";
+import { reportsController } from "@/controllers/reports.controller";
 import * as Location from "expo-location";
 
 export const useOfflineSync = () => {
@@ -31,6 +31,7 @@ export const useOfflineSync = () => {
 
           if (
             finalAddress === "Ubicación seleccionada en el mapa" ||
+            finalAddress === "Ubicación guardada (Sin conexión)" ||
             !finalAddress
           ) {
             console.log("Traduciendo coordenadas a texto antes de enviar...");
@@ -42,8 +43,18 @@ export const useOfflineSync = () => {
 
               if (reverse.length > 0) {
                 const addr = reverse[0];
-                finalAddress =
-                  `${addr.street || ""} ${addr.name || ""}, ${addr.subregion || ""}`.trim();
+                const streetName = addr.street || addr.name || "";
+                const streetNumber = addr.streetNumber ? ` ${addr.streetNumber}` : "";
+                
+                let street = streetName;
+                if (streetName && addr.streetNumber && !streetName.includes(addr.streetNumber)) {
+                  street = `${streetName}${streetNumber}`;
+                } else if (!streetName) {
+                  street = "Ubicación seleccionada";
+                }
+
+                const subregion = addr.subregion ? `, ${addr.subregion}` : "";
+                finalAddress = `${street}${subregion}`;
               }
             } catch (geocodeError) {
               console.log(
@@ -58,20 +69,24 @@ export const useOfflineSync = () => {
             image: report.image_uri,
           };
 
-          await createReport(payload);
+          const result = await reportsController.createReportAction(payload);
 
-          deletePendingReport(report.id);
+          if (result.ok) {
+            deletePendingReport(report.id);
 
-          if (report.image_uri) {
-            try {
-              const file = new File(report.image_uri);
-              await file.delete();
-            } catch (e) {
-              console.log("La foto ya no estaba en el dispositivo.");
+            if (report.image_uri) {
+              try {
+                const file = new File(report.image_uri);
+                await file.delete();
+              } catch (e) {
+                console.log("La foto ya no estaba en el dispositivo.");
+              }
             }
-          }
 
-          console.log(`✅ Reporte offline enviado con éxito.`);
+            console.log(`✅ Reporte offline enviado con éxito.`);
+          } else {
+            console.log(`❌ Falló el envío del reporte offline:`, result.error);
+          }
         } catch (itemError) {
           console.log(`❌ Falló el envío del reporte offline:`, itemError);
         }

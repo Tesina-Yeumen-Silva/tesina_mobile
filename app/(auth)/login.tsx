@@ -1,6 +1,8 @@
-import LoginComponent from "@/components/loginComponents/LoginComponents";
+import React from "react";
+import LoginView from "@/views/login.view";
 
 const Login = () => {
-  return <LoginComponent />;
+  return <LoginView />;
 };
+
 export default Login;

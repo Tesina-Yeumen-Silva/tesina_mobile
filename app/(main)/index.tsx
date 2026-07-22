@@ -1,21 +1,8 @@
-import MapHome from "@/components/homeComponents/Map";
-import * as Location from "expo-location";
-import React, { useEffect } from "react";
-import styled from "styled-components/native";
+import MapViewHome from "@/views/map.view";
+import React from "react";
 
 const Home = () => {
-  useEffect(() => {
-    (async () => {
-      await Location.requestForegroundPermissionsAsync();
-    })();
-  }, []);
-
-  return <MapHome />;
+  return <MapViewHome />;
 };
 
 export default Home;
-
-const Container = styled.View`
-  flex: 1;
-  background-color: #ffffff;
-`;

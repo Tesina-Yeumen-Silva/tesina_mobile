@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components/native";
-import { ReportForm } from "@/components/ReportComponents/ReportForm";
+import { ReportForm } from "@/components/reports/ReportForm";
 
 const ReportScreen = ({ navigation }: any) => {
   return (
