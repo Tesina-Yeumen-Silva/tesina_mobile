@@ -1,7 +1,12 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "Tesina",
+    "slug": "tesina",
+    "extra": {
+      "eas": {
+        "projectId": "fbacd8eb-5ee5-46a9-9503-5536e2d1e65b"
+      }
+    },
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",

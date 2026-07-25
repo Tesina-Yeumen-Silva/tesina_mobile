@@ -1,6 +1,7 @@
 import { authService } from "@/services/auth.service";
 import { useAuthStore } from "@/store/authStore";
 import { LoginRequest, RegisterRequest } from "@/models";
+import { registerForPushNotificationsAsync } from "@/utils/notifications";
 
 export interface ActionResult<T = void> {
   ok: boolean;
@@ -10,15 +11,18 @@ export interface ActionResult<T = void> {
 
 export const authController = {
   loginAction: async (credentials: LoginRequest): Promise<ActionResult> => {
-    if (!credentials.email || !credentials.email.includes("@")) {
+    const email = credentials.email?.trim().toLowerCase();
+    const password = credentials.password;
+
+    if (!email || !email.includes("@")) {
       return { ok: false, error: "Por favor, ingrese un email válido." };
     }
-    if (!credentials.password || credentials.password.length < 6) {
+    if (!password || password.length < 6) {
       return { ok: false, error: "La contraseña debe tener al menos 6 caracteres." };
     }
 
     try {
-      await useAuthStore.getState().login(credentials);
+      await useAuthStore.getState().login({ email, password });
       return { ok: true };
     } catch (error: any) {
       return {
@@ -29,18 +33,26 @@ export const authController = {
   },
 
   registerAction: async (userData: RegisterRequest): Promise<ActionResult<string>> => {
-    if (!userData.name.trim()) {
+    const email = userData.email?.trim().toLowerCase();
+    const name = userData.name?.trim();
+    const password = userData.password;
+
+    if (!name) {
       return { ok: false, error: "El nombre es obligatorio." };
     }
-    if (!userData.email.includes("@")) {
+    if (!email || !email.includes("@")) {
       return { ok: false, error: "Por favor, ingrese un email válido." };
     }
-    if (userData.password.length < 6) {
+    if (password.length < 6) {
       return { ok: false, error: "La contraseña debe tener al menos 6 caracteres." };
     }
 
     try {
-      const signupToken = await useAuthStore.getState().register(userData);
+      const signupToken = await useAuthStore.getState().register({
+        ...userData,
+        email,
+        name,
+      });
       return { ok: true, data: signupToken };
     } catch (error: any) {
       return {
@@ -111,5 +123,17 @@ export const authController = {
 
   logoutAction: async (): Promise<void> => {
     await useAuthStore.getState().logout();
+  },
+
+  registerDevicePushToken: async (): Promise<void> => {
+    try {
+      const token = await registerForPushNotificationsAsync();
+      if (token) {
+        await authService.registerPushToken(token);
+        console.log("Token de notificaciones registrado con éxito.");
+      }
+    } catch (error) {
+      console.error("Error registrando token de notificaciones:", error);
+    }
   },
 };

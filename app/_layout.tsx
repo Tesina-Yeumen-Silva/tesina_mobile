@@ -15,8 +15,9 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ThemeProvider as StyledThemeProvider } from "styled-components/native";
 import { Slot } from "expo-router";
 import { useAuthStore } from "@/store/authStore";
-import { GestureHandlerRootView } from 'react-native-gesture-handler'; // 🚀 Agrega esto
+import { GestureHandlerRootView } from "react-native-gesture-handler"; // 🚀 Agrega esto
 import { useOfflineSync } from "@/hooks/useOfflineSync";
+import { authController } from "@/controllers/auth.controller";
 
 const queryClient = new QueryClient();
 
@@ -44,23 +45,29 @@ export default function RootLayout() {
 function RootLayoutNav() {
   useOfflineSync();
   const colorScheme = useColorScheme();
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
   const currentTheme = colorScheme === "dark" ? Colors.dark : Colors.light;
 
+  useEffect(() => {
+    if (isLoggedIn) {
+      authController.registerDevicePushToken();
+    }
+  }, [isLoggedIn]);
+
   return (
-    <GestureHandlerRootView style={{flex:1}}>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-      <QueryClientProvider client={queryClient}>
-        <StyledThemeProvider theme={currentTheme}>
-          <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
-          <ThemeProvider
-            value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-          >
-            <Slot />
-          </ThemeProvider>
-        </StyledThemeProvider>
-      </QueryClientProvider>
-    </SafeAreaProvider>
+        <QueryClientProvider client={queryClient}>
+          <StyledThemeProvider theme={currentTheme}>
+            <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
+            <ThemeProvider
+              value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+            >
+              <Slot />
+            </ThemeProvider>
+          </StyledThemeProvider>
+        </QueryClientProvider>
+      </SafeAreaProvider>
     </GestureHandlerRootView>
-    
   );
 }

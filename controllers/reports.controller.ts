@@ -101,6 +101,17 @@ export const reportsController = {
     }
   },
 
+  getAdheredReportsByUserIdAction: async (
+    page: number = 1,
+  ): Promise<PaginatedReportsResponse | null> => {
+    try {
+      return await reportsService.getAdheredReportsByUserId(page);
+    } catch (error) {
+      console.log("Error en controller al obtener reportes adheridos del usuario:", error);
+      return null;
+    }
+  },
+
   getHistoryByReportIdAction: async (
     reportId: number,
   ): Promise<ReportHistoryResponse | null> => {

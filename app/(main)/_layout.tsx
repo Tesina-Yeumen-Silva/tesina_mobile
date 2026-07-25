@@ -20,7 +20,7 @@ export default function MainLayout() {
           shadowOpacity: 0,
         },
         headerTintColor: theme.text,
-        
+
         drawerStyle: {
           width: 250,
           backgroundColor: theme.background,
@@ -35,7 +35,9 @@ export default function MainLayout() {
         options={{
           title: "Mapa",
           drawerLabel: "Mapa",
-          drawerIcon: ({ color }) => <Ionicons name="map" size={22} color={color} />,
+          drawerIcon: ({ color }) => (
+            <Ionicons name="map" size={22} color={color} />
+          ),
         }}
       />
 
@@ -44,9 +46,11 @@ export default function MainLayout() {
         options={{
           title: "Reportar",
           drawerLabel: "Reportar",
-          drawerIcon: ({ color }) => <MaterialIcons name="report" size={22} color={color} />,
-          
-          drawerItemStyle: { display: isLoggedIn ? 'flex' : 'none' } 
+          drawerIcon: ({ color }) => (
+            <MaterialIcons name="report" size={22} color={color} />
+          ),
+
+          drawerItemStyle: { display: isLoggedIn ? "flex" : "none" },
         }}
       />
 
@@ -54,14 +58,14 @@ export default function MainLayout() {
         name="profile"
         options={{
           title: "Mi Cuenta",
-          drawerLabel: "Perfil",
-          drawerIcon: ({ color }) => <MaterialIcons name="person" size={22} color={color} />,
-          
-          drawerItemStyle: { display: isLoggedIn ? 'flex' : 'none' } 
+          drawerLabel: "Mis reportes",
+          drawerIcon: ({ color }) => (
+            <MaterialIcons name="person" size={22} color={color} />
+          ),
+
+          drawerItemStyle: { display: isLoggedIn ? "flex" : "none" },
         }}
       />
-
-      
     </Drawer>
   );
 }
