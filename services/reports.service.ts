@@ -67,6 +67,11 @@ export const reportsService = {
     return response.data;
   },
 
+  getAdheredReportsByUserId: async (page: number = 1): Promise<PaginatedReportsResponse> => {
+    const response = await api.get(`/reports/adhered-reports?page=${page}&limit=10`);
+    return response.data;
+  },
+
   getHistoryByReportId: async (reportId: number): Promise<ReportHistoryResponse> => {
     const response = await api.get(`/reports/${reportId}/history`);
     return response.data.data;
