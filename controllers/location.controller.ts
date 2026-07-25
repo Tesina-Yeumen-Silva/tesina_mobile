@@ -1,15 +1,36 @@
 import { locationService } from "@/services/location.service";
 import { PlaceResult } from "@/models";
+import { Alert } from "react-native";
 
 export const locationController = {
   requestPermissionsAction: async (): Promise<boolean> => {
-    return await locationService.requestPermissions();
+    const granted = await locationService.requestPermissions();
+    if (!granted) {
+      Alert.alert(
+        "Permisos requeridos",
+        "Mendoza Reporta necesita acceso a tu ubicación para centrar el mapa y registrar incidentes. Por favor, habilita los permisos de ubicación en los ajustes del sistema."
+      );
+    }
+    return granted;
   },
 
   getCurrentLocationAction: async (): Promise<{ latitude: number; longitude: number } | null> => {
     const hasPermission = await locationService.requestPermissions();
-    if (!hasPermission) return null;
-    return await locationService.getCurrentLocation();
+    if (!hasPermission) {
+      Alert.alert(
+        "Permisos requeridos",
+        "No se pudo acceder a la ubicación porque los permisos están denegados. Actívalos desde los ajustes del sistema."
+      );
+      return null;
+    }
+    const location = await locationService.getCurrentLocation();
+    if (!location) {
+      Alert.alert(
+        "Error de GPS",
+        "No pudimos obtener tu ubicación exacta. Por favor, verifica que tu GPS esté encendido e intenta de nuevo."
+      );
+    }
+    return location;
   },
 
   getLastKnownLocationAction: async (): Promise<{ latitude: number; longitude: number } | null> => {
