@@ -61,6 +61,26 @@ const ReportHistoryModal = ({ reportId, onClose }: props) => {
             <ItemDate>{formatDate(item.createdAt)}</ItemDate>
           </ItemHeader>
           <ObservationText>{item.observation}</ObservationText>
+          {item.user && (
+            <AuthorContainer>
+              <MaterialIcons name="person-outline" size={13} color={theme.tint} />
+              <AuthorText>
+                Respondido por: <AuthorName>{item.user.name}</AuthorName>
+                {item.user.role?.name && (
+                  <AuthorRole>
+                    {" "}
+                    (
+                    {item.user.role.name === "operador"
+                      ? "Operador"
+                      : item.user.role.name === "admin"
+                      ? "Admin"
+                      : item.user.role.name}
+                    )
+                  </AuthorRole>
+                )}
+              </AuthorText>
+            </AuthorContainer>
+          )}
         </ItemContent>
       </HistoryItem>
     );
@@ -165,5 +185,25 @@ const ObservationText = styled.Text`
   font-size: 14px;
   line-height: 20px;
   color: ${(props) => props.theme.text};
+  opacity: 0.8;
+`;
+const AuthorContainer = styled.View`
+  flex-direction: row;
+  align-items: center;
+  margin-top: 6px;
+  gap: 4px;
+`;
+const AuthorText = styled.Text`
+  font-size: 12px;
+  color: ${(props) => props.theme.text};
+  opacity: 0.75;
+`;
+const AuthorName = styled.Text`
+  font-weight: 600;
+  color: ${(props) => props.theme.text};
+`;
+const AuthorRole = styled.Text`
+  font-size: 11px;
+  font-style: italic;
   opacity: 0.8;
 `;
