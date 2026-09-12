@@ -4,12 +4,14 @@ import MapView, { Region, Marker, UrlTile } from "react-native-maps";
 import styled from "styled-components/native";
 import ReportModal from "@/components/reports/ReportModal";
 import { locationController } from "@/controllers/location.controller";
-import { ReportMaker } from "@/models";
+import { ReportMaker, Category } from "@/models";
 import { reportsController } from "@/controllers/reports.controller";
 import ReportDetailModal from "@/components/reports/ReportDetailsModal";
 import { useRouter } from "expo-router";
-import { ActivityIndicator, Alert, Platform } from "react-native";
+import { ActivityIndicator, Alert, Platform, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useAuthStore } from "@/store/authStore";
+import { categoryService } from "@/services/category.service";
+import { stateService, ReportStateItem } from "@/services/state.service";
 
 const MapViewHome = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -24,11 +26,33 @@ const MapViewHome = () => {
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fetchIdRef = useRef<number>(0);
 
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [states, setStates] = useState<ReportStateItem[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | undefined>(undefined);
+  const [selectedStateId, setSelectedStateId] = useState<number | undefined>(undefined);
+  const currentRegionRef = useRef<Region | null>(null);
+
   useEffect(() => {
     (async () => {
       await locationController.requestPermissionsAction();
+      try {
+        const [cats, stts] = await Promise.all([
+          categoryService.getCategories(),
+          stateService.getStates(),
+        ]);
+        setCategories(cats);
+        setStates(stts);
+      } catch (err) {
+        console.log("Error fetching filters", err);
+      }
     })();
   }, []);
+
+  useEffect(() => {
+    if (currentRegionRef.current) {
+      loadMarkersForRegion(currentRegionRef.current, selectedCategoryId, selectedStateId);
+    }
+  }, [selectedCategoryId, selectedStateId]);
 
   const handleOpenReportModal = () => {
     if (isLoggedIn) {
@@ -63,7 +87,8 @@ const MapViewHome = () => {
     }
   };
 
-  const loadMarkersForRegion = useCallback((region: Region) => {
+  const loadMarkersForRegion = useCallback((region: Region, catId?: number, stId?: number) => {
+    currentRegionRef.current = region;
     if (debounceTimer.current) {
       clearTimeout(debounceTimer.current);
     }
@@ -73,7 +98,10 @@ const MapViewHome = () => {
 
       try {
         setIsFetchingMarkers(true);
-        const data = await reportsController.fetchMapMakersAction(region);
+        // Using catId and stId if provided, otherwise the state variables (though they are probably stale in closure, passing them in avoids staleness)
+        const activeCat = catId !== undefined ? catId : selectedCategoryId;
+        const activeSt = stId !== undefined ? stId : selectedStateId;
+        const data = await reportsController.fetchMapMakersAction(region, activeCat, activeSt);
         if (currentFetchId === fetchIdRef.current) {
           setMarkers(data);
         }
@@ -85,7 +113,7 @@ const MapViewHome = () => {
         }
       }
     }, 500);
-  }, []);
+  }, [selectedCategoryId, selectedStateId]);
 
   return (
     <Container>
@@ -110,7 +138,7 @@ const MapViewHome = () => {
           latitudeDelta: 0.05,
           longitudeDelta: 0.05,
         }}
-        onRegionChangeComplete={loadMarkersForRegion}
+        onRegionChangeComplete={(region: Region) => loadMarkersForRegion(region, selectedCategoryId, selectedStateId)}
       >
         <UrlTile
           urlTemplate="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -133,6 +161,44 @@ const MapViewHome = () => {
           />
         ))}
       </Map>
+      
+      <FiltersContainer pointerEvents="box-none">
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0, marginBottom: 8 }}>
+          <Chip
+            active={selectedCategoryId === undefined}
+            onPress={() => setSelectedCategoryId(undefined)}
+          >
+            <ChipText active={selectedCategoryId === undefined}>Todas las categorías</ChipText>
+          </Chip>
+          {categories.map((c) => (
+            <Chip
+              key={c.id}
+              active={selectedCategoryId === c.id}
+              onPress={() => setSelectedCategoryId(c.id)}
+            >
+              <ChipText active={selectedCategoryId === c.id}>{c.name}</ChipText>
+            </Chip>
+          ))}
+        </ScrollView>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0 }}>
+          <Chip
+            active={selectedStateId === undefined}
+            onPress={() => setSelectedStateId(undefined)}
+          >
+            <ChipText active={selectedStateId === undefined}>Todos los estados</ChipText>
+          </Chip>
+          {states.map((s) => (
+            <Chip
+              key={s.id}
+              active={selectedStateId === s.id}
+              onPress={() => setSelectedStateId(s.id)}
+            >
+              <ChipText active={selectedStateId === s.id}>{s.name}</ChipText>
+            </Chip>
+          ))}
+        </ScrollView>
+      </FiltersContainer>
+
       <CenterLocation onPress={centerToUser}>
         <Ionicons name="locate" size={32} />
       </CenterLocation>
@@ -177,4 +243,31 @@ const FabButton = styled.TouchableOpacity`
   border-radius: 30px;
   justify-content: center;
   align-items: center;
+`;
+
+const FiltersContainer = styled.View`
+  position: absolute;
+  top: 50px;
+  left: 0;
+  right: 0;
+  padding: 0 15px;
+`;
+
+const Chip = styled.TouchableOpacity<{ active: boolean }>`
+  background-color: ${(props) => (props.active ? "#007aff" : "#ffffff")};
+  padding: 8px 16px;
+  border-radius: 20px;
+  margin-right: 8px;
+  border: 1px solid ${(props) => (props.active ? "#007aff" : "#cccccc")};
+  shadow-color: #000;
+  shadow-offset: 0px 2px;
+  shadow-opacity: 0.1;
+  shadow-radius: 4px;
+  elevation: 2;
+`;
+
+const ChipText = styled.Text<{ active: boolean }>`
+  color: ${(props) => (props.active ? "#ffffff" : "#333333")};
+  font-weight: 600;
+  font-size: 14px;
 `;

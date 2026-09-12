@@ -15,9 +15,9 @@ import { saveOfflineReport } from "@/services/offlineStorage";
 import { Alert } from "react-native";
 
 export const reportsController = {
-  fetchMapMakersAction: async (region: Region): Promise<ReportMaker[]> => {
+  fetchMapMakersAction: async (region: Region, categoryId?: number, stateId?: number): Promise<ReportMaker[]> => {
     try {
-      return await reportsService.fetchMapMakers(region);
+      return await reportsService.fetchMapMakers(region, categoryId, stateId);
     } catch (error) {
       console.log("Error en controller al obtener marcadores:", error);
       return [];
