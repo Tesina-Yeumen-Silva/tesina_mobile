@@ -10,15 +10,17 @@ import {
 } from "../models";
 
 export const reportsService = {
-  fetchMapMakers: async (region: Region): Promise<ReportMaker[]> => {
+  fetchMapMakers: async (region: Region, categoryId?: number, stateId?: number): Promise<ReportMaker[]> => {
     const minLat = region.latitude - region.latitudeDelta / 2;
     const maxLat = region.latitude + region.latitudeDelta / 2;
     const minLng = region.longitude - region.longitudeDelta / 2;
     const maxLng = region.longitude + region.longitudeDelta / 2;
 
-    const response = await api.get("/reports/markers", {
-      params: { minLat, maxLat, minLng, maxLng },
-    });
+    const params: any = { minLat, maxLat, minLng, maxLng };
+    if (categoryId) params.categoryId = categoryId;
+    if (stateId) params.stateId = stateId;
+
+    const response = await api.get("/reports/markers", { params });
 
     return response.data.data;
   },

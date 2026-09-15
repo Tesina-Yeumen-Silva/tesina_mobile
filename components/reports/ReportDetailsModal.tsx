@@ -21,6 +21,8 @@ interface Props {
   onClose: () => void;
 }
 
+import { getCategoryIcon } from "@/utils/getCategoryIcon";
+
 const ReportDetailModal = ({ reportId, onClose }: Props) => {
   const [reportData, setReportData] = useState<ReportDetails | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -81,7 +83,12 @@ const ReportDetailModal = ({ reportId, onClose }: Props) => {
           ) : reportData ? (
             <ScrollView showsVerticalScrollIndicator={false}>
               <Header>
-                <CategoryBadgeWrapper>
+                <CategoryBadgeWrapper style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                  <MaterialIcons
+                    name={getCategoryIcon(reportData.category)}
+                    size={18}
+                    color="#2196F3"
+                  />
                   <Badge
                     text={reportData.category.toUpperCase()}
                     color="transparent"

@@ -12,11 +12,12 @@ import * as Network from "expo-network";
 import { File } from "expo-file-system";
 import { documentDirectory } from "expo-file-system/legacy";
 import { saveOfflineReport } from "@/services/offlineStorage";
+import { Alert } from "react-native";
 
 export const reportsController = {
-  fetchMapMakersAction: async (region: Region): Promise<ReportMaker[]> => {
+  fetchMapMakersAction: async (region: Region, categoryId?: number, stateId?: number): Promise<ReportMaker[]> => {
     try {
-      return await reportsService.fetchMapMakers(region);
+      return await reportsService.fetchMapMakers(region, categoryId, stateId);
     } catch (error) {
       console.log("Error en controller al obtener marcadores:", error);
       return [];
@@ -28,6 +29,7 @@ export const reportsController = {
       return await reportsService.fetchReportById(reportId);
     } catch (error) {
       console.log("Error en controller al obtener detalle de reporte:", error);
+      Alert.alert("Error", "No se pudo cargar el detalle del reporte. Por favor, inténtelo de nuevo.");
       return null;
     }
   },
@@ -119,6 +121,7 @@ export const reportsController = {
       return await reportsService.getHistoryByReportId(reportId);
     } catch (error) {
       console.log("Error en controller al obtener historial del reporte:", error);
+      Alert.alert("Error", "No se pudo cargar el historial del reporte.");
       return null;
     }
   },

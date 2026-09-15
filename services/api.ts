@@ -1,4 +1,5 @@
 import axios from "axios";
+import { Alert } from "react-native";
 import {
   getAccessToken,
   getRefreshToken,
@@ -35,8 +36,23 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    if (!error.response) {
+      Alert.alert(
+        "Problema de conexión",
+        "No se pudo conectar con el servidor. Por favor, verifica tu conexión a internet.",
+      );
+      return Promise.reject(error);
+    }
+
+    if (error.response.status === 500) {
+      Alert.alert(
+        "Error del servidor",
+        "Ocurrió un error en el servidor. Por favor, inténtalo más tarde.",
+      );
+      return Promise.reject(error);
+    }
+
     if (
-      error.response &&
       error.response.status === 401 &&
       !originalRequest._retry &&
       !originalRequest.url?.endsWith("/auth/refresh") &&
@@ -63,7 +79,7 @@ api.interceptors.response.use(
 
         return api(originalRequest);
       } catch (refreshError) {
-        const { useAuthStore } = require('../store/authStore');
+        const { useAuthStore } = require("../store/authStore");
         useAuthStore.getState().logout();
         return Promise.reject(refreshError);
       }

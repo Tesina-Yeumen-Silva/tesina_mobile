@@ -12,25 +12,7 @@ import ReportHistoryModal from "./ReportHistoryModal";
 import { Badge } from "@/components/ui/Badge";
 import { useFocusEffect } from "expo-router";
 
-const getCategoryIcon = (
-  categoryName: string,
-): keyof typeof MaterialIcons.glyphMap => {
-  const name = categoryName.toLowerCase();
-
-  if (name.includes("bache") || name.includes("paviment")) {
-    return "add-road";
-  }
-  if (name.includes("arbol") || name.includes("verde") || name.includes("espacio")) {
-    return "park";
-  }
-  if (name.includes("basura") || name.includes("higiene")) {
-    return "delete-outline";
-  }
-  if (name.includes("acequia") || name.includes("drenaje")) {
-    return "water-drop";
-  }
-  return "report-problem";
-};
+import { getCategoryIcon } from "@/utils/getCategoryIcon";
 
 interface ReportCardItemProps {
   item: UserReports;
@@ -168,14 +150,20 @@ const UserReportsList = () => {
     }
   };
 
-  const renderFooter = () => {
+  const renderFooter = useCallback(() => {
     if (!isFetchingNextPage) return null;
     return (
       <View style={{ paddingVertical: 20 }}>
         <ActivityIndicator size="small" color="#2196F3" />
       </View>
     );
-  };
+  }, [isFetchingNextPage]);
+
+  useEffect(() => {
+    if (isError) {
+      Alert.alert("Error", error?.message || "Hubo un problema al cargar");
+    }
+  }, [isError]);
 
   if (isLoading) {
     return (
@@ -184,10 +172,6 @@ const UserReportsList = () => {
         <LoadingText>Cargando reportes...</LoadingText>
       </CenterContainer>
     );
-  }
-
-  if (isError) {
-    Alert.alert("Error", error?.message || "Hubo un problema al cargar");
   }
 
   return (
@@ -254,6 +238,12 @@ const UserReportsList = () => {
               selected={selectedCategory === cat.name} 
               onPress={() => setSelectedCategory(cat.name)}
             >
+              <MaterialIcons
+                name={getCategoryIcon(cat.name)}
+                size={14}
+                color={selectedCategory === cat.name ? "#FFFFFF" : "#555555"}
+                style={{ marginRight: 5 }}
+              />
               <PillText selected={selectedCategory === cat.name}>{cat.name}</PillText>
             </CategoryPill>
           ))}
