@@ -1,6 +1,6 @@
 import styled, { useTheme } from "styled-components/native";
 import { Text, View, ModalOverlay, ModalBottomSheet, LoaderContainer } from "@/components/ui/Themed";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { reportsController } from "@/controllers/reports.controller";
 import { ReportHistoryResponse } from "@/models";
 import { ActivityIndicator, FlatList, Modal } from "react-native";
@@ -34,12 +34,14 @@ const ReportHistoryModal = ({ reportId, onClose }: props) => {
     loadHistory();
   }, [reportId]);
 
-  const sortedHistory = history
-    ? [...history].sort(
-        (a, b) =>
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-      )
-    : [];
+  const sortedHistory = useMemo(() => {
+    return history
+      ? [...history].sort(
+          (a, b) =>
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+        )
+      : [];
+  }, [history]);
 
   const renderItem = ({
     item,
