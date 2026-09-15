@@ -59,6 +59,13 @@ export interface ReportHistoryItem {
   stateId: number;
   observation: string;
   createdAt: string;
+  user?: {
+    id: number;
+    name: string;
+    role?: {
+      name: string;
+    };
+  } | null;
   state: {
     id: number;
     name: string;

@@ -40,7 +40,10 @@ const LoginView = () => {
         setPassword("");
         router.replace("/");
       } else {
-        Alert.alert("Error de autenticación", result.error || "Email o contraseña incorrectos");
+        Alert.alert(
+          "Error de autenticación",
+          result.error || "Email o contraseña incorrectos",
+        );
       }
     } catch (error) {
       Alert.alert("Error de autenticación", "Email o contraseña incorrectos");
@@ -62,11 +65,7 @@ const LoginView = () => {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
           <Container>
             <LoginCard>
-              <Logo
-                source={{
-                  uri: "https://i.pinimg.com/736x/90/58/3d/90583d6a4aaafaa6567539ec834f3696.jpg",
-                }}
-              />
+              <LogoText>Mendoza Reporta</LogoText>
 
               <InputEmail
                 value={email}
@@ -118,12 +117,20 @@ const LoginView = () => {
                 <Line />
               </DividerContainer>
 
-              <GoogleButton onPress={startGoogleAuth} disabled={isGoogleLoading}>
+              <GoogleButton
+                onPress={startGoogleAuth}
+                disabled={isGoogleLoading}
+              >
                 {isGoogleLoading ? (
                   <ActivityIndicator color={theme.text} />
                 ) : (
                   <>
-                    <AntDesign name="google" size={20} color={theme.text} style={{ marginRight: 10 }} />
+                    <AntDesign
+                      name="google"
+                      size={20}
+                      color={theme.text}
+                      style={{ marginRight: 10 }}
+                    />
                     <GoogleButtonText>Google</GoogleButtonText>
                   </>
                 )}
@@ -137,7 +144,6 @@ const LoginView = () => {
               <LinkWrapper onPress={() => router.push("/restorePassword")}>
                 <TextBold>¿Olvidaste tu contraseña?</TextBold>
               </LinkWrapper>
-
             </LoginCard>
           </Container>
         </TouchableWithoutFeedback>
@@ -163,12 +169,6 @@ const LoginCard = styled(View)`
   padding: 30px;
   border-radius: 20px;
   align-items: center;
-`;
-
-const Logo = styled.Image`
-  width: 45%;
-  aspect-ratio: 1;
-  margin-bottom: 10%;
 `;
 
 const StyledInput = styled(TextInput)`
@@ -207,6 +207,12 @@ const LoginButton = styled.TouchableOpacity`
   justify-content: center;
   align-items: center;
   margin-top: 10px;
+`;
+
+const LogoText = styled.Text`
+  font-size: 22px;
+  font-weight: bold;
+  color: ${(props) => props.theme.text};
 `;
 
 const LoginButtonText = styled(Text)`

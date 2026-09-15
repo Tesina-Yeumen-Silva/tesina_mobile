@@ -153,6 +153,11 @@ export const locationService = {
       `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
         finalQuery,
       )}&countrycodes=ar&limit=5`,
+      {
+        headers: {
+          "User-Agent": "MendozaReportaApp/1.0",
+        },
+      }
     );
     return await response.json();
   },
