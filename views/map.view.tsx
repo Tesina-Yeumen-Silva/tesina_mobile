@@ -145,6 +145,8 @@ const MapViewHome = () => {
           maximumZ={19}
           tileSize={256}
           shouldReplaceMapContent={true}
+          tileCachePath={`${Platform.OS === 'android' ? 'file://' : ''}/data/osm_tiles`}
+          tileCacheMaxAge={86400}
         />
         {markers.map((marker) => (
           <Marker
@@ -161,6 +163,10 @@ const MapViewHome = () => {
           />
         ))}
       </Map>
+
+      <View style={{ position: 'absolute', bottom: 0, right: 0, backgroundColor: 'rgba(255,255,255,0.7)', paddingHorizontal: 5, paddingVertical: 2 }}>
+        <Text style={{ fontSize: 10, color: '#333' }}>© OpenStreetMap contributors</Text>
+      </View>
       
       <FiltersContainer pointerEvents="box-none">
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0, marginBottom: 8 }}>
