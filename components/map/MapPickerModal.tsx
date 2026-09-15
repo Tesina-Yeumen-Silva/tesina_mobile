@@ -56,6 +56,8 @@ const MapPickerModal = ({ visible, onClose, onConfirm }: MapPickerProps) => {
   }, [searchQuery]);
 
   useEffect(() => {
+    const abortController = new AbortController();
+    
     const searchAddress = async () => {
       if (debouncedQuery.length < 4) {
         setSearchResults([]);
@@ -65,15 +67,22 @@ const MapPickerModal = ({ visible, onClose, onConfirm }: MapPickerProps) => {
       setIsSearching(true);
       try {
         const data = await locationController.searchAddressAction(debouncedQuery);
-        setSearchResults(data);
+        if (!abortController.signal.aborted) {
+          setSearchResults(data);
+        }
       } catch (error) {
-        console.log("Error buscando dirección:", error);
+        if (!abortController.signal.aborted) {
+          console.log("Error buscando dirección:", error);
+        }
       } finally {
-        setIsSearching(false);
+        if (!abortController.signal.aborted) {
+          setIsSearching(false);
+        }
       }
     };
 
     searchAddress();
+    return () => abortController.abort();
   }, [debouncedQuery]);
 
   const getUserLocation = async () => {
@@ -114,7 +123,7 @@ const MapPickerModal = ({ visible, onClose, onConfirm }: MapPickerProps) => {
   };
 
   return (
-    <Modal visible={visible} animationType="slide">
+    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <Container>
         <MapView
           ref={mapRef}
