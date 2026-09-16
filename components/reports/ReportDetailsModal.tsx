@@ -8,7 +8,14 @@ import {
   Modal,
   TouchableOpacity,
 } from "react-native";
-import { Text, View, ModalOverlay, ModalBottomSheet, LoaderContainer, InfoRow } from "../ui/Themed";
+import {
+  Text,
+  View,
+  ModalOverlay,
+  ModalBottomSheet,
+  LoaderContainer,
+  InfoRow,
+} from "../ui/Themed";
 import { Image } from "expo-image";
 import { ScrollView } from "react-native-gesture-handler";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
@@ -22,11 +29,14 @@ interface Props {
 }
 
 import { getCategoryIcon } from "@/utils/getCategoryIcon";
+import ReportHistoryModal from "./ReportHistoryModal";
 
 const ReportDetailModal = ({ reportId, onClose }: Props) => {
   const [reportData, setReportData] = useState<ReportDetails | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isImageVisible, setIsImageVisible] = useState(false);
+  const [isImageVisible, setIsImageVisible] = useState(true);
+  const [isHistoryVisible, setIsHistoryVisible] = useState(false);
+  const [isFullScreenImageVisible, setIsFullScreenImageVisible] = useState(false);
   const theme = useTheme();
 
   useEffect(() => {
@@ -65,7 +75,8 @@ const ReportDetailModal = ({ reportId, onClose }: Props) => {
   };
 
   return (
-    <Modal
+    <>
+      <Modal
       visible={true}
       animationType="slide"
       transparent={true}
@@ -83,22 +94,33 @@ const ReportDetailModal = ({ reportId, onClose }: Props) => {
           ) : reportData ? (
             <ScrollView showsVerticalScrollIndicator={false}>
               <Header>
-                <CategoryBadgeWrapper style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                  <MaterialIcons
-                    name={getCategoryIcon(reportData.category)}
-                    size={18}
-                    color="#2196F3"
-                  />
-                  <Badge
-                    text={reportData.category.toUpperCase()}
-                    color="transparent"
-                    style={{ borderWidth: 1, borderColor: theme.border }}
-                  />
+                <CategoryBadgeWrapper>
+                  <CategoryPill style={{ borderColor: theme.border }}>
+                    <MaterialIcons
+                      name={getCategoryIcon(reportData.category)}
+                      size={15}
+                      color="#2196F3"
+                    />
+                    <CategoryText numberOfLines={1}>
+                      {reportData.category.toUpperCase()}
+                    </CategoryText>
+                  </CategoryPill>
                 </CategoryBadgeWrapper>
                 <MetaInfoWrapper>
-                  <StatusWrapper>
-                    <StatusDot style={{ backgroundColor: reportData.statusColor }} />
+                  <StatusWrapper
+                    onPress={() => setIsHistoryVisible(true)}
+                    activeOpacity={0.7}
+                  >
+                    <StatusDot
+                      style={{ backgroundColor: reportData.statusColor }}
+                    />
                     <StatusText>{reportData.status}</StatusText>
+                    <MaterialIcons
+                      name="history"
+                      size={14}
+                      color={reportData.statusColor}
+                      style={{ marginLeft: 3 }}
+                    />
                   </StatusWrapper>
                   <DateText>{formatDate(reportData.updatedState)}</DateText>
                 </MetaInfoWrapper>
@@ -106,19 +128,30 @@ const ReportDetailModal = ({ reportId, onClose }: Props) => {
               {reportData.imageUrl && (
                 <ImageContainer>
                   {isImageVisible ? (
-                    <ReportImage
-                      source={reportData.imageUrl}
-                      contentFit="cover"
-                      cachePolicy="disk"
-                      recyclingKey={reportData.imageUrl}
-                      transition={300}
-                    />
+                    <ImagePreviewWrapper
+                      onPress={() => setIsFullScreenImageVisible(true)}
+                      activeOpacity={0.85}
+                    >
+                      <ReportImage
+                        source={reportData.imageUrl}
+                        contentFit="contain"
+                        cachePolicy="disk"
+                        recyclingKey={reportData.imageUrl}
+                        transition={300}
+                      />
+                      <ZoomHintBadge>
+                        <Ionicons name="expand" size={13} color="#ffffff" />
+                        <ZoomHintText>Toca para ampliar</ZoomHintText>
+                      </ZoomHintBadge>
+                    </ImagePreviewWrapper>
                   ) : (
                     <ShowImageButton onPress={() => setIsImageVisible(true)}>
                       <Ionicons
                         name="image-outline"
                         size={24}
-                        color={theme.background === "#000" ? "#000000" : "#ffffff"}
+                        color={
+                          theme.background === "#000" ? "#000000" : "#ffffff"
+                        }
                       />
                       <ShowImageText>Ver foto del reporte</ShowImageText>
                     </ShowImageButton>
@@ -165,6 +198,13 @@ const ReportDetailModal = ({ reportId, onClose }: Props) => {
               </DescriptionContainer>
 
               <Button label="Cerrar" variant="close" onPress={onClose} />
+
+              {isHistoryVisible && (
+                <ReportHistoryModal
+                  reportId={reportId}
+                  onClose={() => setIsHistoryVisible(false)}
+                />
+              )}
             </ScrollView>
           ) : (
             <LoaderContainer>
@@ -181,8 +221,35 @@ const ReportDetailModal = ({ reportId, onClose }: Props) => {
             </LoaderContainer>
           )}
         </ModalBottomSheet>
-      </ModalOverlay>
-    </Modal>
+        </ModalOverlay>
+      </Modal>
+
+      {reportData?.imageUrl && isFullScreenImageVisible && (
+        <Modal
+          visible={isFullScreenImageVisible}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setIsFullScreenImageVisible(false)}
+        >
+          <FullScreenOverlay
+            activeOpacity={1}
+            onPress={() => setIsFullScreenImageVisible(false)}
+          >
+            <FullScreenCloseButton
+              onPress={() => setIsFullScreenImageVisible(false)}
+              hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+            >
+              <Ionicons name="close" size={28} color="#ffffff" />
+            </FullScreenCloseButton>
+            <FullScreenImage
+              source={reportData.imageUrl}
+              contentFit="contain"
+              cachePolicy="disk"
+            />
+          </FullScreenOverlay>
+        </Modal>
+      )}
+    </>
   );
 };
 
@@ -194,41 +261,65 @@ const Header = styled(View)`
   align-items: flex-start;
   margin-bottom: 20px;
   width: 100%;
+  gap: 10px;
 `;
 
 const CategoryBadgeWrapper = styled(View)`
-  flex: 1.3;
-  margin-right: 12px;
-`;
-
-const MetaInfoWrapper = styled(View)`
-  flex: 0.7;
-  align-items: flex-end;
-`;
-
-const StatusWrapper = styled(View)`
+  flex: 1;
   flex-direction: row;
   align-items: center;
 `;
 
+const CategoryPill = styled(View)`
+  flex-direction: row;
+  align-items: center;
+  border-width: 1px;
+  border-radius: 12px;
+  padding: 4px 8px;
+  align-self: flex-start;
+`;
+
+const CategoryText = styled(Text)`
+  font-size: 11px;
+  font-weight: bold;
+  color: ${(props) => props.theme.text};
+  margin-left: 5px;
+`;
+
+const MetaInfoWrapper = styled(View)`
+  align-items: flex-end;
+  flex-shrink: 0;
+`;
+
+const StatusWrapper = styled(TouchableOpacity)`
+  flex-direction: row;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 10px;
+  background-color: ${(props) =>
+    props.theme.background === "#000"
+      ? "rgba(255,255,255,0.08)"
+      : "rgba(0,0,0,0.04)"};
+`;
+
 const StatusDot = styled(View)`
-  width: 12px;
-  height: 12px;
-  border-radius: 6px;
-  margin-right: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  margin-right: 5px;
 `;
 
 const StatusText = styled(Text)`
   font-weight: bold;
-  font-size: 12px;
+  font-size: 11px;
   color: ${(props) => props.theme.text};
 `;
 
 const DateText = styled(Text)`
-  font-size: 11px;
+  font-size: 10px;
   color: ${(props) => props.theme.text};
   opacity: 0.6;
-  margin-top: 4px;
+  margin-top: 3px;
 `;
 
 const ImageContainer = styled(View)`
@@ -259,16 +350,72 @@ const ShowImageText = styled(Text)`
   font-weight: bold;
   font-size: 16px;
   margin-left: 10px;
-  color: ${(props) => (props.theme.background === "#000" ? "#000000" : "#ffffff")};
+  color: ${(props) =>
+    props.theme.background === "#000" ? "#000000" : "#ffffff"};
+`;
+
+const ImagePreviewWrapper = styled.TouchableOpacity`
+  width: 100%;
+  height: 240px;
+  border-radius: 14px;
+  overflow: hidden;
+  background-color: ${(props: any) =>
+    props.theme.background === "#000" ? "#141414" : "#f0f0f0"};
+  position: relative;
+  justify-content: center;
+  align-items: center;
+  border-width: 1px;
+  border-color: ${(props: any) => props.theme.border};
 `;
 
 const ReportImage = styled(Image)`
   width: 100%;
-  height: 400px;
-  border-radius: 15px;
-  margin-bottom: 15px;
-  background-color: ${(props) => props.theme.background};
+  height: 100%;
 `;
+
+const ZoomHintBadge = styled(View)`
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+  background-color: rgba(0, 0, 0, 0.65);
+  padding: 5px 10px;
+  border-radius: 12px;
+`;
+
+const ZoomHintText = styled(Text)`
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 600;
+`;
+
+const FullScreenOverlay = styled.TouchableOpacity`
+  flex: 1;
+  background-color: rgba(0, 0, 0, 0.95);
+  justify-content: center;
+  align-items: center;
+`;
+
+const FullScreenCloseButton = styled.TouchableOpacity`
+  position: absolute;
+  top: 50px;
+  right: 20px;
+  z-index: 20;
+  background-color: rgba(255, 255, 255, 0.25);
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  justify-content: center;
+  align-items: center;
+`;
+
+const FullScreenImage = styled(Image)`
+  width: 100%;
+  height: 80%;
+`;
+
 const TitleContainer = styled(View)`
   flex-direction: row;
   justify-content: space-between;
