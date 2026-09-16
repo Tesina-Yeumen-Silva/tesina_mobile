@@ -210,8 +210,9 @@ const LoginButton = styled.TouchableOpacity`
 `;
 
 const LogoText = styled.Text`
-  font-size: 22px;
+  font-size: 25px;
   font-weight: bold;
+  padding-bottom: 25px;
   color: ${(props) => props.theme.text};
 `;
 
