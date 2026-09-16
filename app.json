@@ -10,7 +10,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "MendozaReporta",
+    "scheme": "mendozareporta",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
@@ -75,7 +75,8 @@
           "icon": "./assets/images/icon.png",
           "color": "#2196F3"
         }
-      ]
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true
