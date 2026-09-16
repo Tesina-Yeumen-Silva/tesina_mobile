@@ -103,14 +103,16 @@ export default function RootLayout() {
 function RootLayoutNav() {
   useOfflineSync();
   const colorScheme = useColorScheme();
-  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  const { isLoggedIn, isLoading } = useAuthStore();
   const currentTheme = colorScheme === "dark" ? Colors.dark : Colors.light;
 
   useEffect(() => {
-    if (isLoggedIn) {
-      authController.registerDevicePushToken();
+    if (!isLoading && isLoggedIn) {
+      authController.registerDevicePushToken().catch((err) => {
+        console.warn("No se pudo registrar token de notificaciones:", err);
+      });
     }
-  }, [isLoggedIn]);
+  }, [isLoggedIn, isLoading]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

@@ -29,9 +29,7 @@ export const CustomDrawerContent = (props: any) => {
   };
 
   return (
-    // 🚀 1. Este View envuelve TODO el menú y ocupa toda la pantalla
     <View style={{ flex: 1 }}>
-      {/* 🚀 2. El ScrollView empuja todo hacia arriba */}
       <DrawerContentScrollView
         {...props}
         contentContainerStyle={{ paddingTop: 0 }}
