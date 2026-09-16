@@ -8,7 +8,15 @@ import { ReportMaker, Category } from "@/models";
 import { reportsController } from "@/controllers/reports.controller";
 import ReportDetailModal from "@/components/reports/ReportDetailsModal";
 import { useRouter } from "expo-router";
-import { ActivityIndicator, Alert, Platform, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Platform,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useAuthStore } from "@/store/authStore";
 import { categoryService } from "@/services/category.service";
 import { stateService, ReportStateItem } from "@/services/state.service";
@@ -28,8 +36,12 @@ const MapViewHome = () => {
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [states, setStates] = useState<ReportStateItem[]>([]);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<number | undefined>(undefined);
-  const [selectedStateId, setSelectedStateId] = useState<number | undefined>(undefined);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<
+    number | undefined
+  >(undefined);
+  const [selectedStateId, setSelectedStateId] = useState<number | undefined>(
+    undefined,
+  );
   const currentRegionRef = useRef<Region | null>(null);
 
   useEffect(() => {
@@ -41,7 +53,11 @@ const MapViewHome = () => {
           stateService.getStates(),
         ]);
         setCategories(cats);
-        setStates(stts);
+        const allowedMapStates = ["validado", "en progreso", "resuelto"];
+        const visibleStates = (stts || []).filter((s) =>
+          allowedMapStates.includes(s.name.toLowerCase().trim()),
+        );
+        setStates(visibleStates);
       } catch (err) {
         console.log("Error fetching filters", err);
       }
@@ -50,7 +66,11 @@ const MapViewHome = () => {
 
   useEffect(() => {
     if (currentRegionRef.current) {
-      loadMarkersForRegion(currentRegionRef.current, selectedCategoryId, selectedStateId);
+      loadMarkersForRegion(
+        currentRegionRef.current,
+        selectedCategoryId,
+        selectedStateId,
+      );
     }
   }, [selectedCategoryId, selectedStateId]);
 
@@ -73,7 +93,9 @@ const MapViewHome = () => {
   };
 
   const centerToUser = async () => {
-    const coords = await locationController.getLastKnownLocationAction() || await locationController.getCurrentLocationAction();
+    const coords =
+      (await locationController.getLastKnownLocationAction()) ||
+      (await locationController.getCurrentLocationAction());
     if (mapRef.current && coords) {
       mapRef.current.animateToRegion(
         {
@@ -87,33 +109,37 @@ const MapViewHome = () => {
     }
   };
 
-  const loadMarkersForRegion = useCallback((region: Region, catId?: number, stId?: number) => {
-    currentRegionRef.current = region;
-    if (debounceTimer.current) {
-      clearTimeout(debounceTimer.current);
-    }
-
-    debounceTimer.current = setTimeout(async () => {
-      const currentFetchId = ++fetchIdRef.current;
-
-      try {
-        setIsFetchingMarkers(true);
-        // Using catId and stId if provided, otherwise the state variables (though they are probably stale in closure, passing them in avoids staleness)
-        const activeCat = catId !== undefined ? catId : selectedCategoryId;
-        const activeSt = stId !== undefined ? stId : selectedStateId;
-        const data = await reportsController.fetchMapMakersAction(region, activeCat, activeSt);
-        if (currentFetchId === fetchIdRef.current) {
-          setMarkers(data);
-        }
-      } catch (error) {
-        console.log("Error al cargar marcadores:", error);
-      } finally {
-        if (currentFetchId === fetchIdRef.current) {
-          setIsFetchingMarkers(false);
-        }
+  const loadMarkersForRegion = useCallback(
+    (region: Region, catId?: number, stId?: number) => {
+      currentRegionRef.current = region;
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
       }
-    }, 500);
-  }, [selectedCategoryId, selectedStateId]);
+
+      debounceTimer.current = setTimeout(async () => {
+        const currentFetchId = ++fetchIdRef.current;
+
+        try {
+          setIsFetchingMarkers(true);
+          const data = await reportsController.fetchMapMakersAction(
+            region,
+            catId,
+            stId,
+          );
+          if (currentFetchId === fetchIdRef.current) {
+            setMarkers(data);
+          }
+        } catch (error) {
+          console.log("Error al cargar marcadores:", error);
+        } finally {
+          if (currentFetchId === fetchIdRef.current) {
+            setIsFetchingMarkers(false);
+          }
+        }
+      }, 300);
+    },
+    [],
+  );
 
   return (
     <Container>
@@ -138,14 +164,16 @@ const MapViewHome = () => {
           latitudeDelta: 0.05,
           longitudeDelta: 0.05,
         }}
-        onRegionChangeComplete={(region: Region) => loadMarkersForRegion(region, selectedCategoryId, selectedStateId)}
+        onRegionChangeComplete={(region: Region) =>
+          loadMarkersForRegion(region, selectedCategoryId, selectedStateId)
+        }
       >
         <UrlTile
           urlTemplate="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
           maximumZ={19}
           tileSize={256}
           shouldReplaceMapContent={true}
-          tileCachePath={`${Platform.OS === 'android' ? 'file://' : ''}/data/osm_tiles`}
+          tileCachePath={`${Platform.OS === "android" ? "file://" : ""}/data/osm_tiles`}
           tileCacheMaxAge={86400}
         />
         {markers.map((marker) => (
@@ -157,24 +185,39 @@ const MapViewHome = () => {
             }}
             onPress={() => setSelectedReportId(marker.id)}
             pinColor={marker.statusColor}
-            title={`Reporte: ${marker.status}`}
-            description="Toca para ver detalles"
             tracksViewChanges={false}
           />
         ))}
       </Map>
 
-      <View style={{ position: 'absolute', bottom: 0, right: 0, backgroundColor: 'rgba(255,255,255,0.7)', paddingHorizontal: 5, paddingVertical: 2 }}>
-        <Text style={{ fontSize: 10, color: '#333' }}>© OpenStreetMap contributors</Text>
+      <View
+        style={{
+          position: "absolute",
+          bottom: 0,
+          right: 0,
+          backgroundColor: "rgba(255,255,255,0.7)",
+          paddingHorizontal: 5,
+          paddingVertical: 2,
+        }}
+      >
+        <Text style={{ fontSize: 10, color: "#333" }}>
+          © OpenStreetMap contributors
+        </Text>
       </View>
-      
+
       <FiltersContainer pointerEvents="box-none">
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0, marginBottom: 8 }}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ flexGrow: 0, marginBottom: 8 }}
+        >
           <Chip
             active={selectedCategoryId === undefined}
             onPress={() => setSelectedCategoryId(undefined)}
           >
-            <ChipText active={selectedCategoryId === undefined}>Todas las categorías</ChipText>
+            <ChipText active={selectedCategoryId === undefined}>
+              Todas las categorías
+            </ChipText>
           </Chip>
           {categories.map((c) => (
             <Chip
@@ -186,12 +229,18 @@ const MapViewHome = () => {
             </Chip>
           ))}
         </ScrollView>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0 }}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ flexGrow: 0 }}
+        >
           <Chip
             active={selectedStateId === undefined}
             onPress={() => setSelectedStateId(undefined)}
           >
-            <ChipText active={selectedStateId === undefined}>Todos los estados</ChipText>
+            <ChipText active={selectedStateId === undefined}>
+              Todos los estados
+            </ChipText>
           </Chip>
           {states.map((s) => (
             <Chip
@@ -257,6 +306,8 @@ const FiltersContainer = styled.View`
   left: 0;
   right: 0;
   padding: 0 15px;
+  z-index: 100;
+  elevation: 10;
 `;
 
 const Chip = styled.TouchableOpacity<{ active: boolean }>`
