@@ -1,5 +1,5 @@
 import { Text } from "@/components/ui/Themed";
-import { MaterialIcons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -21,14 +21,17 @@ interface MapPickerProps {
   visible: boolean;
   onClose: () => void;
   onConfirm: (coords: { latitude: number; longitude: number }) => void;
+  initialCoords?: { latitude: number; longitude: number } | null;
 }
 
-const MapPickerModal = ({ visible, onClose, onConfirm }: MapPickerProps) => {
+const MapPickerModal = ({ visible, onClose, onConfirm, initialCoords }: MapPickerProps) => {
   const mapRef = useRef<MapView>(null);
+  const isMapReadyRef = useRef<boolean>(false);
+  const pendingRegionRef = useRef<Region | null>(null);
   const [loading, setLoading] = useState(true);
-  const [region, setRegion] = useState<Region>({
-    latitude: -32.8895,
-    longitude: -68.844,
+  const currentRegionRef = useRef<Region>({
+    latitude: initialCoords?.latitude || -32.8895,
+    longitude: initialCoords?.longitude || -68.844,
     latitudeDelta: 0.005,
     longitudeDelta: 0.005,
   });
@@ -37,6 +40,49 @@ const MapPickerModal = ({ visible, onClose, onConfirm }: MapPickerProps) => {
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [searchResults, setSearchResults] = useState<PlaceResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+
+  const moveToCoords = (latitude: number, longitude: number) => {
+    const targetRegion = {
+      latitude,
+      longitude,
+      latitudeDelta: 0.005,
+      longitudeDelta: 0.005,
+    };
+    currentRegionRef.current = targetRegion;
+    if (isMapReadyRef.current && mapRef.current) {
+      mapRef.current.animateToRegion(targetRegion, 800);
+    } else {
+      pendingRegionRef.current = targetRegion;
+    }
+  };
+
+  const getUserLocation = async () => {
+    setLoading(true);
+    try {
+      if (initialCoords) {
+        moveToCoords(initialCoords.latitude, initialCoords.longitude);
+        setLoading(false);
+        return;
+      }
+
+      // 1. Ubicación inmediata desde caché / última conocida
+      const lastKnown = await locationController.getLastKnownLocationAction();
+      if (lastKnown) {
+        moveToCoords(lastKnown.latitude, lastKnown.longitude);
+        setLoading(false);
+      }
+
+      // 2. Ubicación GPS precisa en tiempo real
+      const freshCoords = await locationController.getCurrentLocationAction();
+      if (freshCoords) {
+        moveToCoords(freshCoords.latitude, freshCoords.longitude);
+      }
+    } catch (error) {
+      console.log("Error al obtener ubicación inicial", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (visible) {
@@ -47,54 +93,11 @@ const MapPickerModal = ({ visible, onClose, onConfirm }: MapPickerProps) => {
     }
   }, [visible]);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedQuery(searchQuery);
-    }, 800);
-
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
-
-  useEffect(() => {
-    const searchAddress = async () => {
-      if (debouncedQuery.length < 4) {
-        setSearchResults([]);
-        return;
-      }
-
-      setIsSearching(true);
-      try {
-        const data = await locationController.searchAddressAction(debouncedQuery);
-        setSearchResults(data);
-      } catch (error) {
-        console.log("Error buscando dirección:", error);
-      } finally {
-        setIsSearching(false);
-      }
-    };
-
-    searchAddress();
-  }, [debouncedQuery]);
-
-  const getUserLocation = async () => {
-    setLoading(true);
-    try {
-      const coords = await locationController.getCurrentLocationAction();
-      if (!coords) return;
-
-      const userRegion = {
-        latitude: coords.latitude,
-        longitude: coords.longitude,
-        latitudeDelta: 0.005,
-        longitudeDelta: 0.005,
-      };
-
-      setRegion(userRegion);
-      mapRef.current?.animateToRegion(userRegion, 1000);
-    } catch (error) {
-      console.log("Error al obtener ubicación inicial", error);
-    } finally {
-      setLoading(false);
+  const handleMapReady = () => {
+    isMapReadyRef.current = true;
+    if (pendingRegionRef.current && mapRef.current) {
+      mapRef.current.animateToRegion(pendingRegionRef.current, 800);
+      pendingRegionRef.current = null;
     }
   };
 
@@ -110,24 +113,32 @@ const MapPickerModal = ({ visible, onClose, onConfirm }: MapPickerProps) => {
       longitudeDelta: 0.005,
     };
 
+    currentRegionRef.current = newRegion;
     mapRef.current?.animateToRegion(newRegion, 1000);
   };
 
   return (
-    <Modal visible={visible} animationType="slide">
+    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <Container>
-        <MapView
+        <Map
           ref={mapRef}
-          style={StyleSheet.absoluteFillObject}
+          userInterfaceStyle="light"
           mapType={Platform.OS === "android" ? "none" : "standard"}
-          initialRegion={region}
+          initialRegion={{
+            latitude: -32.8895,
+            longitude: -68.844,
+            latitudeDelta: 0.005,
+            longitudeDelta: 0.005,
+          }}
           showsUserLocation={true}
           showsMyLocationButton={true}
+          onMapReady={handleMapReady}
           onTouchStart={() => {
             Keyboard.dismiss();
-            setSearchResults([]);
           }}
-          onRegionChangeComplete={(newRegion) => setRegion(newRegion)}
+          onRegionChangeComplete={(newRegion) => {
+            currentRegionRef.current = newRegion;
+          }}
         >
           <UrlTile
             urlTemplate="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -137,7 +148,7 @@ const MapPickerModal = ({ visible, onClose, onConfirm }: MapPickerProps) => {
             tileCachePath={`${Platform.OS === 'android' ? 'file://' : ''}/data/osm_tiles`}
             tileCacheMaxAge={86400}
           />
-        </MapView>
+        </Map>
 
         <View style={{ position: 'absolute', bottom: 0, right: 0, backgroundColor: 'rgba(255,255,255,0.7)', paddingHorizontal: 5, paddingVertical: 2, zIndex: 5 }}>
           <Text style={{ fontSize: 10, color: '#333' }}>© OpenStreetMap contributors</Text>
@@ -161,7 +172,10 @@ const MapPickerModal = ({ visible, onClose, onConfirm }: MapPickerProps) => {
             />
             {isSearching && <ActivityIndicator size="small" color="#2196f3" />}
             {searchQuery.length > 0 && !isSearching && (
-              <TouchableOpacity onPress={() => setSearchQuery("")}>
+              <TouchableOpacity onPress={() => {
+                setSearchQuery("");
+                setSearchResults([]);
+              }}>
                 <MaterialIcons name="close" size={24} color="#666" />
               </TouchableOpacity>
             )}
@@ -171,7 +185,7 @@ const MapPickerModal = ({ visible, onClose, onConfirm }: MapPickerProps) => {
             <ResultsList
               data={searchResults}
               keyExtractor={(item: any) => item.place_id.toString()}
-              keyboardShouldPersistTaps="handled"
+              keyboardShouldPersistTaps="always"
               renderItem={({ item }: any) => (
                 <ResultItem onPress={() => handleSelectPlace(item)}>
                   <MaterialIcons name="location-on" size={20} color="#2196F3" />
@@ -194,8 +208,12 @@ const MapPickerModal = ({ visible, onClose, onConfirm }: MapPickerProps) => {
           </LoadingOverlay>
         )}
 
+        <LocateButton onPress={getUserLocation} activeOpacity={0.8}>
+          <Ionicons name="locate" size={24} color="#007aff" />
+        </LocateButton>
+
         <Footer>
-          <ConfirmButton onPress={() => onConfirm(region)}>
+          <ConfirmButton onPress={() => onConfirm(currentRegionRef.current)}>
             <ButtonText>Confirmar Ubicación</ButtonText>
           </ConfirmButton>
         </Footer>
@@ -207,6 +225,32 @@ const MapPickerModal = ({ visible, onClose, onConfirm }: MapPickerProps) => {
 export default MapPickerModal;
 const Container = styled.View`
   flex: 1;
+  width: 100%;
+  height: 100%;
+  background-color: #ffffff;
+`;
+
+const Map = styled(MapView)`
+  width: 100%;
+  height: 100%;
+`;
+
+const LocateButton = styled.TouchableOpacity`
+  position: absolute;
+  bottom: 110px;
+  right: 20px;
+  background-color: white;
+  width: 48px;
+  height: 48px;
+  border-radius: 24px;
+  justify-content: center;
+  align-items: center;
+  elevation: 5;
+  shadow-color: #000;
+  shadow-opacity: 0.15;
+  shadow-radius: 4px;
+  shadow-offset: 0px 2px;
+  z-index: 20;
 `;
 
 const Header = styled.View`
@@ -296,7 +340,8 @@ const SearchContainer = styled.View`
   top: 110px; 
   width: 90%;
   align-self: center;
-  z-index: 10;
+  z-index: 100;
+  elevation: 10;
 `;
 
 const InputWrapper = styled.View`
@@ -317,6 +362,7 @@ const SearchInput = styled(TextInput)`
   flex: 1;
   font-size: 16px;
   margin: 0 10px;
+  color: #1a1a1a;
 `;
 
 const ResultsList = styled(FlatList)`

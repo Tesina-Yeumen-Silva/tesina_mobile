@@ -17,7 +17,7 @@ export const useOfflineSync = () => {
         return;
       }
 
-      const pending = getPendingReports();
+      const pending = await getPendingReports();
       if (pending.length === 0) return;
 
       for (const report of pending) {
@@ -90,17 +90,20 @@ export const useOfflineSync = () => {
               `Tu reporte pendiente en "${finalAddress}" se ha enviado correctamente ahora que tienes conexión.`,
             );
           } else {
-            console.error(`❌ Falló el envío del reporte offline:`, result.error);
+            console.error(
+              `❌ Falló el envío del reporte offline:`,
+              result.error,
+            );
             Alert.alert(
               "Sincronización fallida",
-              `No se pudo enviar tu reporte pendiente en "${finalAddress}": ${result.error || "Error desconocido"}`
+              `No se pudo enviar tu reporte pendiente en "${finalAddress}": ${result.error || "Error desconocido"}`,
             );
           }
         } catch (itemError: any) {
           console.error(`❌ Falló el envío del reporte offline:`, itemError);
           Alert.alert(
             "Sincronización fallida",
-            `Ocurrió un error inesperado al procesar tu reporte pendiente: ${itemError?.message || "Error desconocido"}`
+            `Ocurrió un error inesperado al procesar tu reporte pendiente: ${itemError?.message || "Error desconocido"}`,
           );
         }
       }

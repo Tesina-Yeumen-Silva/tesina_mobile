@@ -3,7 +3,7 @@ import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { reportsController } from "@/controllers/reports.controller";
 import { categoryController } from "@/controllers/category.controller";
 import { UserReports, Category } from "@/models";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, useMemo } from "react";
 import { ActivityIndicator, Alert, FlatList, Platform, View, TouchableOpacity } from "react-native";
 import { formatDate } from "@/utils/formatDate";
 import ReportDetailModal from "./ReportDetailsModal";
@@ -59,6 +59,8 @@ const STATES = [
   { label: "Rechazado", value: "Rechazado", color: "#F44336" },
   { label: "Duplicado", value: "Duplicado", color: "#9E9E9E" },
 ];
+
+const ITEM_HEIGHT = 120;
 
 const UserReportsList = () => {
   const [activeTab, setActiveTab] = useState<"mine" | "adhered">("mine");
@@ -118,31 +120,33 @@ const UserReportsList = () => {
 
   const reports = data?.pages.flatMap((page) => page.data) || [];
 
-  const filteredReports = reports.filter((report) => {
-    // 1. Filtrar por búsqueda de dirección o categoría
-    if (searchQuery.trim().length > 0) {
-      const query = searchQuery.toLowerCase();
-      const matchAddress = report.address?.toLowerCase().includes(query);
-      const matchCategory = report.categoryName?.toLowerCase().includes(query);
-      if (!matchAddress && !matchCategory) return false;
-    }
-
-    // 2. Filtrar por categoría seleccionada
-    if (selectedCategory) {
-      if (report.categoryName?.toLowerCase() !== selectedCategory.toLowerCase()) {
-        return false;
+  const filteredReports = useMemo(() => {
+    return reports.filter((report) => {
+      // 1. Filtrar por búsqueda de dirección o categoría
+      if (searchQuery.trim().length > 0) {
+        const query = searchQuery.toLowerCase();
+        const matchAddress = report.address?.toLowerCase().includes(query);
+        const matchCategory = report.categoryName?.toLowerCase().includes(query);
+        if (!matchAddress && !matchCategory) return false;
       }
-    }
 
-    // 3. Filtrar por estado seleccionado
-    if (selectedState) {
-      if (report.stateName?.toLowerCase() !== selectedState.toLowerCase()) {
-        return false;
+      // 2. Filtrar por categoría seleccionada
+      if (selectedCategory) {
+        if (report.categoryName?.toLowerCase() !== selectedCategory.toLowerCase()) {
+          return false;
+        }
       }
-    }
 
-    return true;
-  });
+      // 3. Filtrar por estado seleccionado
+      if (selectedState) {
+        if (report.stateName?.toLowerCase() !== selectedState.toLowerCase()) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [reports, searchQuery, selectedCategory, selectedState]);
 
   const handleLoadMore = () => {
     if (hasNextPage && !isFetchingNextPage) {
@@ -289,6 +293,11 @@ const UserReportsList = () => {
         <FlatList
           data={filteredReports}
           keyExtractor={(item) => item.id.toString()}
+          getItemLayout={(data, index) => ({
+            length: ITEM_HEIGHT,
+            offset: ITEM_HEIGHT * index,
+            index,
+          })}
           renderItem={({ item }) => (
             <ReportCardItem
               item={item}

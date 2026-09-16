@@ -149,16 +149,26 @@ export const locationService = {
       ? query
       : `${query}, Mendoza`;
 
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-        finalQuery,
-      )}&countrycodes=ar&limit=5`,
-      {
-        headers: {
-          "User-Agent": "MendozaReportaApp/1.0",
-        },
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+          finalQuery,
+        )}&countrycodes=ar&limit=5&email=mendozareporta@gmail.com`,
+        {
+          headers: {
+            "User-Agent": "MendozaReportaApp/1.0",
+            Accept: "application/json",
+          },
+        }
+      );
+      if (!response.ok) {
+        console.warn("Nominatim search response not ok:", response.status);
+        return [];
       }
-    );
-    return await response.json();
+      return await response.json();
+    } catch (error) {
+      console.warn("Error en searchAddress:", error);
+      return [];
+    }
   },
 };

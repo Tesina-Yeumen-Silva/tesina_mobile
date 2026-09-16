@@ -11,22 +11,22 @@ db.execSync(`
     );
   `);
 
-export const saveOfflineReport = (data: any, imageUri: string | null) => {
+export const saveOfflineReport = async (data: any, imageUri: string | null) => {
   const createdAt = new Date().toISOString();
   const dataJson = JSON.stringify(data);
 
-  db.runSync(
+  await db.runAsync(
     "INSERT INTO pending_reports (data_json, image_uri, created_at) VALUES (?, ?, ?)",
     [dataJson, imageUri, createdAt],
   );
 };
 
-export const getPendingReports = () => {
-  return db.getAllSync<{ id: number; data_json: string; image_uri: string }>(
+export const getPendingReports = async () => {
+  return await db.getAllAsync<{ id: number; data_json: string; image_uri: string }>(
     "SELECT * FROM pending_reports",
   );
 };
 
-export const deletePendingReport = (id: number) => {
-  db.runSync("DELETE FROM pending_reports WHERE id = ?", [id]);
+export const deletePendingReport = async (id: number) => {
+  await db.runAsync("DELETE FROM pending_reports WHERE id = ?", [id]);
 };

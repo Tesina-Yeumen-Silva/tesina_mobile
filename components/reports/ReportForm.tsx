@@ -182,6 +182,11 @@ export const ReportForm = ({
             visible={isMapVisible}
             onClose={() => setIsMapVisible(false)}
             onConfirm={handleConfirmLocation}
+            initialCoords={
+              selectedCoords
+                ? { latitude: selectedCoords.lat, longitude: selectedCoords.lng }
+                : null
+            }
           />
 
           <DropdownComponent
