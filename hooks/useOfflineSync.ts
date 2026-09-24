@@ -74,7 +74,7 @@ export const useOfflineSync = () => {
           const result = await reportsController.createReportAction(payload);
 
           if (result.ok) {
-            deletePendingReport(report.id);
+            await deletePendingReport(report.id);
 
             if (report.image_uri) {
               try {

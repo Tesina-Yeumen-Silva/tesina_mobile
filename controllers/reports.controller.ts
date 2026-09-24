@@ -68,7 +68,7 @@ export const reportsController = {
           categoryId: report.categoryId,
         };
 
-        saveOfflineReport(reportData, permanentImageUri);
+        await saveOfflineReport(reportData, permanentImageUri);
         return { ok: true, data: { offline: true } };
       }
     } catch (error: any) {
