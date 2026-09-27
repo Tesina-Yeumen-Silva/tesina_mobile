@@ -8,10 +8,18 @@ import {
 } from "@/services/offlineStorage";
 import { reportsController } from "@/controllers/reports.controller";
 import * as Location from "expo-location";
+import { useAuthStore } from "@/store/authStore";
 
 export const useOfflineSync = () => {
+  const { isLoggedIn } = useAuthStore();
+
   const syncReports = async () => {
     try {
+      const { isLoggedIn: currentLoggedIn } = useAuthStore.getState();
+      if (!currentLoggedIn) {
+        return;
+      }
+
       const networkState = await Network.getNetworkStateAsync();
       if (!networkState.isConnected || !networkState.isInternetReachable) {
         return;
@@ -125,6 +133,12 @@ export const useOfflineSync = () => {
       subscription.remove();
     };
   }, []);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      syncReports();
+    }
+  }, [isLoggedIn]);
 
   return { syncReports };
 };
