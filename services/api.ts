@@ -101,7 +101,12 @@ api.interceptors.response.use(
           refreshToken,
         });
 
-        const { accessToken } = refreshResponse.data;
+        const responsePayload = refreshResponse.data?.data || refreshResponse.data;
+        const accessToken = responsePayload.accessToken;
+
+        if (!accessToken) {
+          throw new Error("No se recibió accessToken en la respuesta de refresco");
+        }
 
         await saveToken(accessToken);
         processQueue(null, accessToken);
