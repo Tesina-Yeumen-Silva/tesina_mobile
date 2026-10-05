@@ -105,7 +105,7 @@ const LoginView = () => {
                 style={{ opacity: isLoading ? 0.7 : 1 }}
               >
                 {isLoading ? (
-                  <ActivityIndicator color="#ffffff" />
+                  <ActivityIndicator color={theme.background} />
                 ) : (
                   <LoginButtonText>Login</LoginButtonText>
                 )}
@@ -221,7 +221,7 @@ const LoginButtonText = styled(Text)`
   font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: ${({ theme }) => theme.text || "#666"};
+  color: ${({ theme }) => theme.background};
 `;
 
 export const LinkWrapper = styled.TouchableOpacity`

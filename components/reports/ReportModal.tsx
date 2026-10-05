@@ -1,7 +1,6 @@
-import React, { Dispatch, SetStateAction } from 'react';
-import { Modal } from 'react-native';
-import { ReportForm } from './ReportForm';
-import styled from 'styled-components/native';
+import React, { Dispatch, SetStateAction } from "react";
+import { ReportForm } from "./ReportForm";
+import styled from "styled-components/native";
 
 interface ReportModalProps {
   isModalVisible: boolean;
@@ -13,27 +12,31 @@ const ReportModal = ({
   setIsModalVisible,
 }: ReportModalProps) => {
   const closeModal = () => setIsModalVisible(false);
-  
+
   if (!isModalVisible) return null;
 
   return (
-    <View style={[StyleSheet.absoluteFill, { zIndex: 999, elevation: 999, position: 'absolute' }]}>
-      <ModalOverlay onPress={closeModal}>
-        <View onStartShouldSetResponder={() => true} style={{ width: '100%' }}>
-          <ReportForm 
-            onSuccess={closeModal} 
-            onCancel={closeModal} 
+    <View style={[StyleSheet.absoluteFill, { zIndex: 999, elevation: 999 }]}>
+      <ModalOverlay onPress={closeModal} />
+      <View style={[StyleSheet.absoluteFill]} pointerEvents="box-none">
+        <View
+          style={{ flex: 1, justifyContent: "flex-end" }}
+          pointerEvents="box-none"
+        >
+          <ReportForm
+            onSuccess={closeModal}
+            onCancel={closeModal}
             isModal={true}
           />
         </View>
-      </ModalOverlay>
+      </View>
     </View>
   );
 };
 
 export default ReportModal;
 
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from "react-native";
 
 const ModalOverlay = styled.Pressable`
   flex: 1;

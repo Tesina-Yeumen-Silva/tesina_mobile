@@ -191,7 +191,7 @@ const RegisterView = () => {
                     style={{ opacity: isLoading ? 0.7 : 1 }}
                   >
                     {isLoading ? (
-                      <ActivityIndicator color="#ffffff" />
+                      <ActivityIndicator color={theme.background} />
                     ) : (
                       <RegisterButtonText>Registrarse</RegisterButtonText>
                     )}
@@ -251,7 +251,7 @@ const RegisterView = () => {
                     style={{ opacity: isLoading ? 0.7 : 1 }}
                   >
                     {isLoading ? (
-                      <ActivityIndicator color="#ffffff" />
+                      <ActivityIndicator color={theme.background} />
                     ) : (
                       <RegisterButtonText>Verificar Código</RegisterButtonText>
                     )}
@@ -366,6 +366,7 @@ const RegisterButtonText = styled(Text)`
   font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 1px;
+  color: ${({ theme }) => theme.background};
 `;
 
 export const ResendContainer = styled.View`
