@@ -221,6 +221,7 @@ const LoginButtonText = styled(Text)`
   font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 1px;
+  color: ${({ theme }) => theme.text || "#666"};
 `;
 
 export const LinkWrapper = styled.TouchableOpacity`
