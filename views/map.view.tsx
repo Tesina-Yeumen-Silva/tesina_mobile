@@ -35,10 +35,21 @@ const MapViewHome = () => {
     undefined,
   );
   const currentRegionRef = useRef<Region | null>(null);
+  const [userLocation, setUserLocation] = useState<{latitude: number, longitude: number} | null>(null);
 
   useEffect(() => {
     (async () => {
       await locationController.requestPermissionsAction();
+      
+      try {
+        const loc = await locationController.getCurrentLocationAction();
+        if (loc) {
+          setUserLocation({ latitude: loc.latitude, longitude: loc.longitude });
+        }
+      } catch (err) {
+        console.log("Error getting location", err);
+      }
+
       try {
         const [cats, stts] = await Promise.all([
           categoryService.getCategories(),
@@ -88,13 +99,16 @@ const MapViewHome = () => {
     const coords =
       (await locationController.getLastKnownLocationAction()) ||
       (await locationController.getCurrentLocationAction());
-    if (mapRef.current && coords) {
-      mapRef.current.animateToRegion({
-        latitude: coords.latitude,
-        longitude: coords.longitude,
-        latitudeDelta: 0.005,
-        longitudeDelta: 0.005,
-      });
+    if (coords) {
+      setUserLocation({ latitude: coords.latitude, longitude: coords.longitude });
+      if (mapRef.current) {
+        mapRef.current.animateToRegion({
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+          latitudeDelta: 0.005,
+          longitudeDelta: 0.005,
+        });
+      }
     }
   };
 
@@ -144,6 +158,7 @@ const MapViewHome = () => {
       )}
       <LeafletMapView
         ref={mapRef}
+        userLocation={userLocation}
         initialRegion={{
           latitude: -32.8894,
           longitude: -68.8458,
