@@ -1,11 +1,11 @@
 import { reportsService } from "@/services/reports.service";
-import { Region } from "react-native-maps";
 import {
   CreateReport,
   PaginatedReportsResponse,
   ReportDetails,
   ReportHistoryResponse,
   ReportMaker,
+  Region,
 } from "@/models";
 import { ActionResult } from "./auth.controller";
 import * as Network from "expo-network";

@@ -1,16 +1,19 @@
 import { api } from "./api";
-import { Region } from "react-native-maps";
 import {
   CreateReport,
   PaginatedReportsResponse,
   ReportDetails,
   ReportHistoryResponse,
   ReportMaker,
-  PlaceResult,
+  Region,
 } from "../models";
 
 export const reportsService = {
-  fetchMapMakers: async (region: Region, categoryId?: number, stateId?: number): Promise<ReportMaker[]> => {
+  fetchMapMakers: async (
+    region: Region,
+    categoryId?: number,
+    stateId?: number,
+  ): Promise<ReportMaker[]> => {
     const minLat = region.latitude - region.latitudeDelta / 2;
     const maxLat = region.latitude + region.latitudeDelta / 2;
     const minLng = region.longitude - region.longitudeDelta / 2;
@@ -64,20 +67,28 @@ export const reportsService = {
     return response.data.data;
   },
 
-  getReportsByUserId: async (page: number = 1): Promise<PaginatedReportsResponse> => {
-    const response = await api.get(`/reports/user-reports?page=${page}&limit=10`);
+  getReportsByUserId: async (
+    page: number = 1,
+  ): Promise<PaginatedReportsResponse> => {
+    const response = await api.get(
+      `/reports/user-reports?page=${page}&limit=10`,
+    );
     return response.data;
   },
 
-  getAdheredReportsByUserId: async (page: number = 1): Promise<PaginatedReportsResponse> => {
-    const response = await api.get(`/reports/adhered-reports?page=${page}&limit=10`);
+  getAdheredReportsByUserId: async (
+    page: number = 1,
+  ): Promise<PaginatedReportsResponse> => {
+    const response = await api.get(
+      `/reports/adhered-reports?page=${page}&limit=10`,
+    );
     return response.data;
   },
 
-  getHistoryByReportId: async (reportId: number): Promise<ReportHistoryResponse> => {
+  getHistoryByReportId: async (
+    reportId: number,
+  ): Promise<ReportHistoryResponse> => {
     const response = await api.get(`/reports/${reportId}/history`);
     return response.data.data;
   },
-
 };
-

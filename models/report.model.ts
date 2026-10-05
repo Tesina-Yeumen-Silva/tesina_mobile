@@ -82,3 +82,9 @@ export interface PlaceResult {
   lon: string;
 }
 
+export interface Region {
+  latitude: number;
+  longitude: number;
+  latitudeDelta: number;
+  longitudeDelta: number;
+}

@@ -6,16 +6,14 @@ import {
   FlatList,
   Keyboard,
   Modal,
-  Platform,
-  StyleSheet,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
-import MapView, { Region, UrlTile } from "react-native-maps";
 import styled from "styled-components/native";
 import { locationController } from "@/controllers/location.controller";
-import { PlaceResult } from "@/models";
+import { PlaceResult, Region } from "@/models";
+import { LeafletMapView, LeafletMapRef } from "@/components/map/LeafletMapView";
 
 interface MapPickerProps {
   visible: boolean;
@@ -24,8 +22,13 @@ interface MapPickerProps {
   initialCoords?: { latitude: number; longitude: number } | null;
 }
 
-const MapPickerModal = ({ visible, onClose, onConfirm, initialCoords }: MapPickerProps) => {
-  const mapRef = useRef<MapView>(null);
+const MapPickerModal = ({
+  visible,
+  onClose,
+  onConfirm,
+  initialCoords,
+}: MapPickerProps) => {
+  const mapRef = useRef<LeafletMapRef>(null);
   const isMapReadyRef = useRef<boolean>(false);
   const pendingRegionRef = useRef<Region | null>(null);
   const [loading, setLoading] = useState(true);
@@ -50,7 +53,7 @@ const MapPickerModal = ({ visible, onClose, onConfirm, initialCoords }: MapPicke
     };
     currentRegionRef.current = targetRegion;
     if (isMapReadyRef.current && mapRef.current) {
-      mapRef.current.animateToRegion(targetRegion, 800);
+      mapRef.current.animateToRegion(targetRegion);
     } else {
       pendingRegionRef.current = targetRegion;
     }
@@ -96,7 +99,7 @@ const MapPickerModal = ({ visible, onClose, onConfirm, initialCoords }: MapPicke
   const handleMapReady = () => {
     isMapReadyRef.current = true;
     if (pendingRegionRef.current && mapRef.current) {
-      mapRef.current.animateToRegion(pendingRegionRef.current, 800);
+      mapRef.current.animateToRegion(pendingRegionRef.current);
       pendingRegionRef.current = null;
     }
   };
@@ -114,44 +117,40 @@ const MapPickerModal = ({ visible, onClose, onConfirm, initialCoords }: MapPicke
     };
 
     currentRegionRef.current = newRegion;
-    mapRef.current?.animateToRegion(newRegion, 1000);
+    mapRef.current?.animateToRegion(newRegion);
   };
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <Container>
-        <Map
+        <LeafletMapView
           ref={mapRef}
-          userInterfaceStyle="light"
-          mapType={Platform.OS === "android" ? "none" : "standard"}
           initialRegion={{
             latitude: -32.8895,
             longitude: -68.844,
             latitudeDelta: 0.005,
             longitudeDelta: 0.005,
           }}
-          showsUserLocation={true}
-          showsMyLocationButton={true}
           onMapReady={handleMapReady}
-          onTouchStart={() => {
-            Keyboard.dismiss();
-          }}
           onRegionChangeComplete={(newRegion) => {
             currentRegionRef.current = newRegion;
           }}
-        >
-          <UrlTile
-            urlTemplate="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-            maximumZ={19}
-            tileSize={256}
-            shouldReplaceMapContent={true}
-            tileCachePath={`${Platform.OS === 'android' ? 'file://' : ''}/data/osm_tiles`}
-            tileCacheMaxAge={86400}
-          />
-        </Map>
+        />
 
-        <View style={{ position: 'absolute', bottom: 0, right: 0, backgroundColor: 'rgba(255,255,255,0.7)', paddingHorizontal: 5, paddingVertical: 2, zIndex: 5 }}>
-          <Text style={{ fontSize: 10, color: '#333' }}>© OpenStreetMap contributors</Text>
+        <View
+          style={{
+            position: "absolute",
+            bottom: 0,
+            right: 0,
+            backgroundColor: "rgba(255,255,255,0.7)",
+            paddingHorizontal: 5,
+            paddingVertical: 2,
+            zIndex: 5,
+          }}
+        >
+          <Text style={{ fontSize: 10, color: "#333" }}>
+            © OpenStreetMap contributors
+          </Text>
         </View>
 
         <Header>
@@ -172,10 +171,12 @@ const MapPickerModal = ({ visible, onClose, onConfirm, initialCoords }: MapPicke
             />
             {isSearching && <ActivityIndicator size="small" color="#2196f3" />}
             {searchQuery.length > 0 && !isSearching && (
-              <TouchableOpacity onPress={() => {
-                setSearchQuery("");
-                setSearchResults([]);
-              }}>
+              <TouchableOpacity
+                onPress={() => {
+                  setSearchQuery("");
+                  setSearchResults([]);
+                }}
+              >
                 <MaterialIcons name="close" size={24} color="#666" />
               </TouchableOpacity>
             )}
@@ -230,11 +231,6 @@ const Container = styled.View`
   background-color: #ffffff;
 `;
 
-const Map = styled(MapView)`
-  width: 100%;
-  height: 100%;
-`;
-
 const LocateButton = styled.TouchableOpacity`
   position: absolute;
   bottom: 110px;
@@ -259,7 +255,7 @@ const Header = styled.View`
   flex-direction: row;
   align-items: center;
   width: 100%;
-  padding: 0 20px; 
+  padding: 0 20px;
   justify-content: space-between;
   z-index: 10;
 `;
@@ -337,7 +333,7 @@ const CircleButton = styled.TouchableOpacity`
 
 const SearchContainer = styled.View`
   position: absolute;
-  top: 110px; 
+  top: 110px;
   width: 90%;
   align-self: center;
   z-index: 100;
