@@ -43,6 +43,7 @@ const MapPickerModal = ({
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [searchResults, setSearchResults] = useState<PlaceResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [userLocation, setUserLocation] = useState<{latitude: number, longitude: number} | null>(null);
 
   const moveToCoords = (latitude: number, longitude: number) => {
     const targetRegion = {
@@ -71,6 +72,7 @@ const MapPickerModal = ({
       // 1. Ubicación inmediata desde caché / última conocida
       const lastKnown = await locationController.getLastKnownLocationAction();
       if (lastKnown) {
+        setUserLocation({ latitude: lastKnown.latitude, longitude: lastKnown.longitude });
         moveToCoords(lastKnown.latitude, lastKnown.longitude);
         setLoading(false);
       }
@@ -78,6 +80,7 @@ const MapPickerModal = ({
       // 2. Ubicación GPS precisa en tiempo real
       const freshCoords = await locationController.getCurrentLocationAction();
       if (freshCoords) {
+        setUserLocation({ latitude: freshCoords.latitude, longitude: freshCoords.longitude });
         moveToCoords(freshCoords.latitude, freshCoords.longitude);
       }
     } catch (error) {
@@ -125,6 +128,7 @@ const MapPickerModal = ({
       <Container>
         <LeafletMapView
           ref={mapRef}
+          userLocation={userLocation}
           initialRegion={{
             latitude: -32.8895,
             longitude: -68.844,
