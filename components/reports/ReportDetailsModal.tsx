@@ -34,7 +34,7 @@ import ReportHistoryModal from "./ReportHistoryModal";
 const ReportDetailModal = ({ reportId, onClose }: Props) => {
   const [reportData, setReportData] = useState<ReportDetails | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isImageVisible, setIsImageVisible] = useState(true);
+  const [isImageVisible, setIsImageVisible] = useState(false);
   const [isHistoryVisible, setIsHistoryVisible] = useState(false);
   const [isFullScreenImageVisible, setIsFullScreenImageVisible] = useState(false);
   const theme = useTheme();
