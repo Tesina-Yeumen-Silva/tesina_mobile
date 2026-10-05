@@ -12,32 +12,31 @@ const ReportModal = ({
   isModalVisible,
   setIsModalVisible,
 }: ReportModalProps) => {
-  
   const closeModal = () => setIsModalVisible(false);
+  
+  if (!isModalVisible) return null;
 
   return (
-    <Modal
-      animationType="slide"
-      transparent={true}
-      visible={isModalVisible}
-      onRequestClose={closeModal}
-    >
+    <View style={[StyleSheet.absoluteFill, { zIndex: 999, elevation: 999, position: 'absolute' }]}>
       <ModalOverlay onPress={closeModal}>
-        
-        <ReportForm 
-          onSuccess={closeModal} 
-          onCancel={closeModal} 
-          isModal={true}
-        />
-
+        <View onStartShouldSetResponder={() => true} style={{ width: '100%' }}>
+          <ReportForm 
+            onSuccess={closeModal} 
+            onCancel={closeModal} 
+            isModal={true}
+          />
+        </View>
       </ModalOverlay>
-    </Modal>
+    </View>
   );
 };
 
 export default ReportModal;
 
+import { StyleSheet, View } from 'react-native';
+
 const ModalOverlay = styled.Pressable`
   flex: 1;
+  background-color: rgba(0, 0, 0, 0.5);
   justify-content: flex-end;
 `;
