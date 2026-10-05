@@ -13,6 +13,7 @@ export interface MarkerProps {
 interface LeafletMapViewProps {
   initialRegion: Region;
   markers?: MarkerProps[];
+  userLocation?: { latitude: number; longitude: number } | null;
   onRegionChangeComplete?: (region: Region) => void;
   onMarkerPress?: (id: number) => void;
   onMapReady?: () => void;
@@ -26,6 +27,7 @@ export interface LeafletMapRef {
 export const LeafletMapView = forwardRef<LeafletMapRef, LeafletMapViewProps>(({
   initialRegion,
   markers = [],
+  userLocation,
   onRegionChangeComplete,
   onMarkerPress,
   onMapReady,
@@ -60,6 +62,14 @@ export const LeafletMapView = forwardRef<LeafletMapRef, LeafletMapViewProps>(({
             border: 2px solid white;
             box-shadow: 0 0 4px rgba(0,0,0,0.5);
           }
+          .user-marker {
+            width: 16px;
+            height: 16px;
+            background-color: #007aff;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 0 8px rgba(0, 122, 255, 0.8);
+          }
         </style>
       </head>
       <body>
@@ -67,6 +77,7 @@ export const LeafletMapView = forwardRef<LeafletMapRef, LeafletMapViewProps>(({
         <script>
           let map;
           let markersDict = {};
+          let userMarker = null;
 
           function initMap() {
             map = L.map('map', {zoomControl: false}).setView([${initialRegion.latitude}, ${initialRegion.longitude}], 14);
@@ -87,6 +98,21 @@ export const LeafletMapView = forwardRef<LeafletMapRef, LeafletMapViewProps>(({
             });
 
             window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'onMapReady' }));
+          }
+
+          function updateUserLocation(lat, lng) {
+            if (userMarker) {
+              userMarker.setLatLng([lat, lng]);
+            } else {
+              const iconHtml = \`<div class="user-marker"></div>\`;
+              const customIcon = L.divIcon({
+                className: '',
+                html: iconHtml,
+                iconSize: [22, 22],
+                iconAnchor: [11, 11]
+              });
+              userMarker = L.marker([lat, lng], { icon: customIcon, zIndexOffset: 1000 }).addTo(map);
+            }
           }
 
           function addMarker(id, lat, lng, color) {
@@ -133,6 +159,17 @@ export const LeafletMapView = forwardRef<LeafletMapRef, LeafletMapViewProps>(({
     webViewRef.current.injectJavaScript(js);
   }, [markers]);
 
+  useEffect(() => {
+    if (!isReady.current || !webViewRef.current) return;
+    if (userLocation) {
+      const js = `
+        updateUserLocation(${userLocation.latitude}, ${userLocation.longitude});
+        true;
+      `;
+      webViewRef.current.injectJavaScript(js);
+    }
+  }, [userLocation]);
+
   const handleMessage = (event: any) => {
     try {
       const data = JSON.parse(event.nativeEvent.data);
@@ -141,6 +178,7 @@ export const LeafletMapView = forwardRef<LeafletMapRef, LeafletMapViewProps>(({
         if (onMapReady) onMapReady();
         const js = `
           ${markers.map(m => `addMarker(${m.id}, ${m.latitude}, ${m.longitude}, '${m.color || '#2196f3'}');`).join('\n')}
+          ${userLocation ? `updateUserLocation(${userLocation.latitude}, ${userLocation.longitude});` : ''}
           true;
         `;
         webViewRef.current?.injectJavaScript(js);
