@@ -162,8 +162,8 @@ export const ReportForm = ({
           <AnonymousContainer>
             <AnonymousText>Reporte anonimo</AnonymousText>
             <Switch
-              trackColor={{ false: "red", true: "white" }}
-              thumbColor={isAnonymous ? "#2196f3" : "#1e1c1e"}
+              trackColor={{ false: "#767577", true: "#81b0ff" }}
+              thumbColor={isAnonymous ? "#2196f3" : "#f4f3f4"}
               onValueChange={toggleSwitch}
               value={isAnonymous}
             />
