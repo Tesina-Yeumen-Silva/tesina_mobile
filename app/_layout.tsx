@@ -1,3 +1,4 @@
+import "react-native-gesture-handler";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import Colors from "@/constants/Colors";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
