@@ -1,7 +1,6 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import styled from "styled-components/native";
-import ReportModal from "@/components/reports/ReportModal";
 import { locationController } from "@/controllers/location.controller";
 import { ReportMaker, Category, Region } from "@/models";
 import { reportsController } from "@/controllers/reports.controller";
@@ -14,7 +13,6 @@ import { categoryService } from "@/services/category.service";
 import { stateService, ReportStateItem } from "@/services/state.service";
 
 const MapViewHome = () => {
-  const [isModalVisible, setIsModalVisible] = useState(false);
   const [isReportDetailVisible, setIsReportDetailVisible] =
     useState<boolean>(false);
   const [selectedReportId, setSelectedReportId] = useState<number | null>(null);
@@ -35,12 +33,15 @@ const MapViewHome = () => {
     undefined,
   );
   const currentRegionRef = useRef<Region | null>(null);
-  const [userLocation, setUserLocation] = useState<{latitude: number, longitude: number} | null>(null);
+  const [userLocation, setUserLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
 
   useEffect(() => {
     (async () => {
       await locationController.requestPermissionsAction();
-      
+
       try {
         const loc = await locationController.getCurrentLocationAction();
         if (loc) {
@@ -77,30 +78,15 @@ const MapViewHome = () => {
     }
   }, [selectedCategoryId, selectedStateId]);
 
-  const handleOpenReportModal = () => {
-    if (isLoggedIn) {
-      setIsModalVisible(true);
-    } else {
-      Alert.alert(
-        "Identificación requerida",
-        "Para reportar incidentes en la vía pública necesitas tener una cuenta activa. ¿Quieres iniciar sesión ahora?",
-        [
-          { text: "Después", style: "cancel" },
-          {
-            text: "Ir al Login",
-            onPress: () => router.push("/login"),
-          },
-        ],
-      );
-    }
-  };
-
   const centerToUser = async () => {
     const coords =
       (await locationController.getLastKnownLocationAction()) ||
       (await locationController.getCurrentLocationAction());
     if (coords) {
-      setUserLocation({ latitude: coords.latitude, longitude: coords.longitude });
+      setUserLocation({
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+      });
       if (mapRef.current) {
         mapRef.current.animateToRegion({
           latitude: coords.latitude,
@@ -146,10 +132,6 @@ const MapViewHome = () => {
 
   return (
     <Container>
-      {isModalVisible && (
-        <ReportModal isModalVisible setIsModalVisible={setIsModalVisible} />
-      )}
-
       {selectedReportId !== null && (
         <ReportDetailModal
           reportId={selectedReportId}
@@ -244,9 +226,6 @@ const MapViewHome = () => {
       <CenterLocation onPress={centerToUser}>
         <Ionicons name="locate" size={32} />
       </CenterLocation>
-      <FabButton onPress={handleOpenReportModal}>
-        <MaterialIcons name="report-problem" size={32} />
-      </FabButton>
     </Container>
   );
 };
