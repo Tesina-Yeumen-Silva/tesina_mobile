@@ -10,11 +10,15 @@ import { reportsController } from "@/controllers/reports.controller";
 import * as Location from "expo-location";
 import { useAuthStore } from "@/store/authStore";
 
+let isSyncingGlobal = false;
+
 export const useOfflineSync = () => {
   const { isLoggedIn } = useAuthStore();
 
   const syncReports = async () => {
+    if (isSyncingGlobal) return;
     try {
+      isSyncingGlobal = true;
       const { isLoggedIn: currentLoggedIn } = useAuthStore.getState();
       if (!currentLoggedIn) {
         return;
@@ -117,6 +121,8 @@ export const useOfflineSync = () => {
       }
     } catch (error) {
       console.error("Error general en el hook de sincronización:", error);
+    } finally {
+      isSyncingGlobal = false;
     }
   };
 
